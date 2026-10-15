@@ -1,38 +1,56 @@
 package com.example.bookclub.user.controllers;
 
-import com.example.bookclub.user.models.User;
+import com.example.bookclub.user.dtos.UserRequest;
+import com.example.bookclub.user.dtos.UserResponse;
+import com.example.bookclub.user.services.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("api/v1/user")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
-    @GetMapping("/hello")
-    public User getUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setAge(30);
-        user.setUsername("johndoe");
-        user.setEmail("john.doe@example.com");
-        user.setPhoneNumber("+420123456789");
-        return user;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping
+    public List<UserResponse> findAll() {
+        return userService.findAll().stream().map(UserResponse::from).toList();
+    }
+
+    @GetMapping("/{id}")
+    public UserResponse findById(@PathVariable Long id) {
+        return UserResponse.from(userService.findById(id));
     }
 
     @PostMapping
-    public User getPostUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setAge(30);
-        user.setUsername("johndoe");
-        user.setEmail("john.doe@example.com");
-        user.setPhoneNumber("+420123456789");
-        return user;
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse create(@Valid @RequestBody UserRequest request) {
+        return UserResponse.from(userService.create(request.toEntity()));
+    }
+
+    @PutMapping("/{id}")
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
+        return UserResponse.from(userService.update(id, request.toEntity()));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        userService.delete(id);
     }
 }
