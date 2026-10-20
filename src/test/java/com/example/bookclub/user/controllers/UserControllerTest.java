@@ -48,6 +48,16 @@ class UserControllerTest {
     }
 
     @Test
+    void invalidNestedAddressReturns400() throws Exception {
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"age\": 30, \"username\": \"john\", \"email\": \"john@example.com\","
+                                + " \"addresses\": [{\"street\": \"\", \"city\": \"Ostrava\", \"country\": \"CZ\"}]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors['addresses[0].street']").exists());
+    }
+
+    @Test
     void unsupportedMethodReturns405() throws Exception {
         mockMvc.perform(patch("/api/v1/users/1"))
                 .andExpect(status().isMethodNotAllowed());

@@ -37,6 +37,8 @@ public class UserService {
         existing.setUsername(updated.getUsername());
         existing.setEmail(updated.getEmail());
         existing.setPhoneNumber(updated.getPhoneNumber());
+        existing.getAddresses().clear();
+        updated.getAddresses().forEach(existing::addAddress);
         return userRepository.save(existing);
     }
 

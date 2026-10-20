@@ -2,6 +2,8 @@ package com.example.bookclub.user.dtos;
 
 import com.example.bookclub.user.models.User;
 
+import java.util.List;
+
 public record UserResponse(
         Long id,
         String firstName,
@@ -9,7 +11,8 @@ public record UserResponse(
         int age,
         String username,
         String email,
-        String phoneNumber
+        String phoneNumber,
+        List<AddressResponse> addresses
 ) {
 
     public static UserResponse from(User user) {
@@ -20,7 +23,8 @@ public record UserResponse(
                 user.getAge(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getPhoneNumber()
+                user.getPhoneNumber(),
+                user.getAddresses().stream().map(AddressResponse::from).toList()
         );
     }
 }

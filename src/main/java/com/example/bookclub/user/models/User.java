@@ -1,11 +1,16 @@
 package com.example.bookclub.user.models;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -26,6 +31,9 @@ public class User {
     private String email;
 
     private String phoneNumber;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Address> addresses = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -82,5 +90,13 @@ public class User {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
-}
 
+    public List<Address> getAddresses() {
+        return addresses;
+    }
+
+    public void addAddress(Address address) {
+        address.setUser(this);
+        addresses.add(address);
+    }
+}
