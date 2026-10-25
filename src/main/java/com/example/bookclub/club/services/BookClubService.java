@@ -1,5 +1,8 @@
 package com.example.bookclub.club.services;
 
+import com.example.bookclub.book.models.Book;
+import com.example.bookclub.book.services.BookService;
+import com.example.bookclub.club.dtos.BookClubResponse;
 import com.example.bookclub.club.models.BookClub;
 import com.example.bookclub.club.repositories.BookClubRepository;
 import com.example.bookclub.common.NotFoundException;
@@ -16,35 +19,40 @@ public class BookClubService {
 
     private final BookClubRepository bookClubRepository;
     private final UserService userService;
+    private final BookService bookService;
 
-    public BookClubService(BookClubRepository bookClubRepository, UserService userService) {
+    public BookClubService(BookClubRepository bookClubRepository, UserService userService, BookService bookService) {
         this.bookClubRepository = bookClubRepository;
         this.userService = userService;
+        this.bookService = bookService;
     }
 
-    public Page<BookClub> findAll(Pageable pageable) {
-        return bookClubRepository.findAll(pageable);
+    @Transactional(readOnly = true)
+    public Page<BookClubResponse> findAll(Pageable pageable) {
+        return bookClubRepository.findAll(pageable).map(BookClubResponse::from);
     }
 
-    public BookClub findById(Long id) {
-        return bookClubRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Book club " + id + " not found"));
+    @Transactional(readOnly = true)
+    public BookClubResponse findById(Long id) {
+        return BookClubResponse.from(findClub(id));
     }
 
     @Transactional
-    public BookClub create(BookClub club, Long ownerId) {
-        User owner = userService.findById(ownerId);
+    public BookClubResponse create(BookClub club, Long currentBookId, Long ownerId) {
+        User owner = userService.findUser(ownerId);
+        club.setCurrentBook(findCurrentBook(currentBookId));
         club.setOwner(owner);
         club.addMember(owner);
-        return bookClubRepository.save(club);
+        return BookClubResponse.from(bookClubRepository.save(club));
     }
 
     @Transactional
-    public BookClub update(Long id, BookClub updated, Long userId) {
+    public BookClubResponse update(Long id, BookClub updated, Long currentBookId, Long userId) {
         BookClub existing = findOwnedClub(id, userId);
         existing.setName(updated.getName());
         existing.setDescription(updated.getDescription());
-        return existing;
+        existing.setCurrentBook(findCurrentBook(currentBookId));
+        return BookClubResponse.from(existing);
     }
 
     @Transactional
@@ -53,19 +61,28 @@ public class BookClubService {
     }
 
     @Transactional
-    public BookClub addMember(Long clubId, Long userId) {
-        BookClub club = findById(clubId);
-        club.addMember(userService.findById(userId));
-        return club;
+    public BookClubResponse addMember(Long clubId, Long userId) {
+        BookClub club = findClub(clubId);
+        club.addMember(userService.findUser(userId));
+        return BookClubResponse.from(club);
     }
 
     @Transactional
     public void removeMember(Long clubId, Long userId) {
-        findById(clubId).removeMember(userService.findById(userId));
+        findClub(clubId).removeMember(userService.findUser(userId));
+    }
+
+    private BookClub findClub(Long id) {
+        return bookClubRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Book club " + id + " not found"));
+    }
+
+    private Book findCurrentBook(Long bookId) {
+        return bookId == null ? null : bookService.findBook(bookId);
     }
 
     private BookClub findOwnedClub(Long id, Long userId) {
-        BookClub club = findById(id);
+        BookClub club = findClub(id);
         if (!club.isOwnedBy(userId)) {
             throw new AccessDeniedException("Only the owner can change book club " + id);
         }

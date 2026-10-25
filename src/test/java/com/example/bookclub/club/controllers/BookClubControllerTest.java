@@ -1,10 +1,11 @@
 package com.example.bookclub.club.controllers;
 
+import com.example.bookclub.club.dtos.BookClubResponse;
+import com.example.bookclub.club.dtos.MemberResponse;
 import com.example.bookclub.club.models.BookClub;
 import com.example.bookclub.club.services.BookClubService;
 import com.example.bookclub.common.NotFoundException;
 import com.example.bookclub.config.SecurityConfig;
-import com.example.bookclub.user.models.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -15,8 +16,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -55,14 +59,8 @@ class BookClubControllerTest {
 
     @Test
     void addingMemberReturnsClubWithMember() throws Exception {
-        User user = new User();
-        user.setId(7L);
-        user.setUsername("john");
-        BookClub club = new BookClub();
-        club.setId(1L);
-        club.setName("Sci-fi");
-        club.setOwner(user);
-        club.addMember(user);
+        MemberResponse john = new MemberResponse(7L, "john");
+        BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, null, john, List.of(john));
         when(bookClubService.addMember(1L, 7L)).thenReturn(club);
 
         mockMvc.perform(post("/api/v1/clubs/1/members/7").with(jwt().jwt(token -> token.subject("7"))))
@@ -73,15 +71,9 @@ class BookClubControllerTest {
 
     @Test
     void creatorBecomesOwner() throws Exception {
-        User owner = new User();
-        owner.setId(7L);
-        owner.setUsername("john");
-        BookClub club = new BookClub();
-        club.setId(1L);
-        club.setName("Sci-fi");
-        club.setOwner(owner);
-        club.addMember(owner);
-        when(bookClubService.create(any(BookClub.class), eq(7L))).thenReturn(club);
+        MemberResponse john = new MemberResponse(7L, "john");
+        BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, null, john, List.of(john));
+        when(bookClubService.create(any(BookClub.class), isNull(), eq(7L))).thenReturn(club);
 
         mockMvc.perform(post("/api/v1/clubs").with(jwt().jwt(token -> token.subject("7")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,7 +85,7 @@ class BookClubControllerTest {
 
     @Test
     void updatingSomeoneElsesClubReturns403() throws Exception {
-        when(bookClubService.update(eq(1L), any(BookClub.class), eq(8L)))
+        when(bookClubService.update(eq(1L), any(BookClub.class), isNull(), eq(8L)))
                 .thenThrow(new AccessDeniedException("Only the owner can change book club 1"));
 
         mockMvc.perform(put("/api/v1/clubs/1").with(jwt().jwt(token -> token.subject("8")))

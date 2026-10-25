@@ -31,24 +31,24 @@ public class UserController {
 
     @GetMapping
     public PagedModel<UserResponse> findAll(@ParameterObject Pageable pageable) {
-        return new PagedModel<>(userService.findAll(pageable).map(UserResponse::from));
+        return new PagedModel<>(userService.findAll(pageable));
     }
 
     @GetMapping("/{id}")
     public UserResponse findById(@PathVariable Long id) {
-        return UserResponse.from(userService.findById(id));
+        return userService.findById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse create(@Valid @RequestBody UserRequest request) {
-        return UserResponse.from(userService.create(request.toEntity()));
+        return userService.create(request.toEntity());
     }
 
     @PreAuthorize("#id.toString() == authentication.name")
     @PutMapping("/{id}")
     public UserResponse update(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
-        return UserResponse.from(userService.update(id, request.toEntity()));
+        return userService.update(id, request.toEntity());
     }
 
     @PreAuthorize("#id.toString() == authentication.name")

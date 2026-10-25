@@ -1,5 +1,6 @@
 package com.example.bookclub.club.models;
 
+import com.example.bookclub.book.models.Book;
 import com.example.bookclub.user.models.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,6 +33,10 @@ public class BookClub {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_book_id")
+    private Book currentBook;
 
     @ManyToMany
     @JoinTable(
@@ -71,6 +76,14 @@ public class BookClub {
 
     public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    public Book getCurrentBook() {
+        return currentBook;
+    }
+
+    public void setCurrentBook(Book currentBook) {
+        this.currentBook = currentBook;
     }
 
     public boolean isOwnedBy(Long userId) {

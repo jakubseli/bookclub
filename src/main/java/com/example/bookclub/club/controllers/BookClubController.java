@@ -33,24 +33,24 @@ public class BookClubController {
 
     @GetMapping
     public PagedModel<BookClubResponse> findAll(@ParameterObject Pageable pageable) {
-        return new PagedModel<>(bookClubService.findAll(pageable).map(BookClubResponse::from));
+        return new PagedModel<>(bookClubService.findAll(pageable));
     }
 
     @GetMapping("/{id}")
     public BookClubResponse findById(@PathVariable Long id) {
-        return BookClubResponse.from(bookClubService.findById(id));
+        return bookClubService.findById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BookClubResponse create(@Valid @RequestBody BookClubRequest request, @AuthenticationPrincipal Jwt jwt) {
-        return BookClubResponse.from(bookClubService.create(request.toEntity(), userId(jwt)));
+        return bookClubService.create(request.toEntity(), request.currentBookId(), userId(jwt));
     }
 
     @PutMapping("/{id}")
     public BookClubResponse update(@PathVariable Long id, @Valid @RequestBody BookClubRequest request,
                                    @AuthenticationPrincipal Jwt jwt) {
-        return BookClubResponse.from(bookClubService.update(id, request.toEntity(), userId(jwt)));
+        return bookClubService.update(id, request.toEntity(), request.currentBookId(), userId(jwt));
     }
 
     @DeleteMapping("/{id}")
@@ -62,7 +62,7 @@ public class BookClubController {
     @PreAuthorize("#userId.toString() == authentication.name")
     @PostMapping("/{id}/members/{userId}")
     public BookClubResponse addMember(@PathVariable Long id, @PathVariable Long userId) {
-        return BookClubResponse.from(bookClubService.addMember(id, userId));
+        return bookClubService.addMember(id, userId);
     }
 
     @PreAuthorize("#userId.toString() == authentication.name")

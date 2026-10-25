@@ -1,12 +1,14 @@
 package com.example.bookclub.user.services;
 
 import com.example.bookclub.common.NotFoundException;
+import com.example.bookclub.user.dtos.UserResponse;
 import com.example.bookclub.user.models.User;
 import com.example.bookclub.user.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -19,22 +21,25 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Page<User> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable);
+    @Transactional(readOnly = true)
+    public Page<UserResponse> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).map(UserResponse::from);
     }
 
-    public User findById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User " + id + " not found"));
+    @Transactional(readOnly = true)
+    public UserResponse findById(Long id) {
+        return UserResponse.from(findUser(id));
     }
 
-    public User create(User user) {
+    @Transactional
+    public UserResponse create(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        return UserResponse.from(userRepository.save(user));
     }
 
-    public User update(Long id, User updated) {
-        User existing = findById(id);
+    @Transactional
+    public UserResponse update(Long id, User updated) {
+        User existing = findUser(id);
         existing.setFirstName(updated.getFirstName());
         existing.setLastName(updated.getLastName());
         existing.setAge(updated.getAge());
@@ -44,10 +49,16 @@ public class UserService {
         existing.setPassword(passwordEncoder.encode(updated.getPassword()));
         existing.getAddresses().clear();
         updated.getAddresses().forEach(existing::addAddress);
-        return userRepository.save(existing);
+        return UserResponse.from(userRepository.save(existing));
     }
 
+    @Transactional
     public void delete(Long id) {
-        userRepository.delete(findById(id));
+        userRepository.delete(findUser(id));
+    }
+
+    public User findUser(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User " + id + " not found"));
     }
 }
