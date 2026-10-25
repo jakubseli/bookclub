@@ -3,9 +3,11 @@ package com.example.bookclub.club.services;
 import com.example.bookclub.club.models.BookClub;
 import com.example.bookclub.club.repositories.BookClubRepository;
 import com.example.bookclub.common.NotFoundException;
+import com.example.bookclub.user.models.User;
 import com.example.bookclub.user.services.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,19 +31,25 @@ public class BookClubService {
                 .orElseThrow(() -> new NotFoundException("Book club " + id + " not found"));
     }
 
-    public BookClub create(BookClub club) {
+    @Transactional
+    public BookClub create(BookClub club, Long ownerId) {
+        User owner = userService.findById(ownerId);
+        club.setOwner(owner);
+        club.addMember(owner);
         return bookClubRepository.save(club);
     }
 
-    public BookClub update(Long id, BookClub updated) {
-        BookClub existing = findById(id);
+    @Transactional
+    public BookClub update(Long id, BookClub updated, Long userId) {
+        BookClub existing = findOwnedClub(id, userId);
         existing.setName(updated.getName());
         existing.setDescription(updated.getDescription());
-        return bookClubRepository.save(existing);
+        return existing;
     }
 
-    public void delete(Long id) {
-        bookClubRepository.delete(findById(id));
+    @Transactional
+    public void delete(Long id, Long userId) {
+        bookClubRepository.delete(findOwnedClub(id, userId));
     }
 
     @Transactional
@@ -54,5 +62,13 @@ public class BookClubService {
     @Transactional
     public void removeMember(Long clubId, Long userId) {
         findById(clubId).removeMember(userService.findById(userId));
+    }
+
+    private BookClub findOwnedClub(Long id, Long userId) {
+        BookClub club = findById(id);
+        if (!club.isOwnedBy(userId)) {
+            throw new AccessDeniedException("Only the owner can change book club " + id);
+        }
+        return club;
     }
 }

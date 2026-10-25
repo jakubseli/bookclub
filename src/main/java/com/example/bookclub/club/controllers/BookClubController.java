@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,19 +43,20 @@ public class BookClubController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BookClubResponse create(@Valid @RequestBody BookClubRequest request) {
-        return BookClubResponse.from(bookClubService.create(request.toEntity()));
+    public BookClubResponse create(@Valid @RequestBody BookClubRequest request, @AuthenticationPrincipal Jwt jwt) {
+        return BookClubResponse.from(bookClubService.create(request.toEntity(), userId(jwt)));
     }
 
     @PutMapping("/{id}")
-    public BookClubResponse update(@PathVariable Long id, @Valid @RequestBody BookClubRequest request) {
-        return BookClubResponse.from(bookClubService.update(id, request.toEntity()));
+    public BookClubResponse update(@PathVariable Long id, @Valid @RequestBody BookClubRequest request,
+                                   @AuthenticationPrincipal Jwt jwt) {
+        return BookClubResponse.from(bookClubService.update(id, request.toEntity(), userId(jwt)));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        bookClubService.delete(id);
+    public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        bookClubService.delete(id, userId(jwt));
     }
 
     @PreAuthorize("#userId.toString() == authentication.name")
@@ -67,5 +70,9 @@ public class BookClubController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeMember(@PathVariable Long id, @PathVariable Long userId) {
         bookClubService.removeMember(id, userId);
+    }
+
+    private static Long userId(Jwt jwt) {
+        return Long.valueOf(jwt.getSubject());
     }
 }

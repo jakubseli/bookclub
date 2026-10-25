@@ -46,6 +46,9 @@ public class User {
     @ManyToMany(mappedBy = "members")
     private Set<BookClub> clubs = new HashSet<>();
 
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE)
+    private Set<BookClub> ownedClubs = new HashSet<>();
+
     public Long getId() {
         return id;
     }

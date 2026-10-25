@@ -9,6 +9,7 @@ public record BookClubResponse(
         Long id,
         String name,
         String description,
+        MemberResponse owner,
         List<MemberResponse> members
 ) {
 
@@ -17,6 +18,7 @@ public record BookClubResponse(
                 club.getId(),
                 club.getName(),
                 club.getDescription(),
+                MemberResponse.from(club.getOwner()),
                 club.getMembers().stream()
                         .map(MemberResponse::from)
                         .sorted(Comparator.comparing(MemberResponse::username))

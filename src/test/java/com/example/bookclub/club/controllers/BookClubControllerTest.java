@@ -10,14 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,6 +61,7 @@ class BookClubControllerTest {
         BookClub club = new BookClub();
         club.setId(1L);
         club.setName("Sci-fi");
+        club.setOwner(user);
         club.addMember(user);
         when(bookClubService.addMember(1L, 7L)).thenReturn(club);
 
@@ -64,6 +69,37 @@ class BookClubControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members[0].id").value(7))
                 .andExpect(jsonPath("$.members[0].username").value("john"));
+    }
+
+    @Test
+    void creatorBecomesOwner() throws Exception {
+        User owner = new User();
+        owner.setId(7L);
+        owner.setUsername("john");
+        BookClub club = new BookClub();
+        club.setId(1L);
+        club.setName("Sci-fi");
+        club.setOwner(owner);
+        club.addMember(owner);
+        when(bookClubService.create(any(BookClub.class), eq(7L))).thenReturn(club);
+
+        mockMvc.perform(post("/api/v1/clubs").with(jwt().jwt(token -> token.subject("7")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"Sci-fi\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.owner.id").value(7))
+                .andExpect(jsonPath("$.members[0].id").value(7));
+    }
+
+    @Test
+    void updatingSomeoneElsesClubReturns403() throws Exception {
+        when(bookClubService.update(eq(1L), any(BookClub.class), eq(8L)))
+                .thenThrow(new AccessDeniedException("Only the owner can change book club 1"));
+
+        mockMvc.perform(put("/api/v1/clubs/1").with(jwt().jwt(token -> token.subject("8")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"Renamed\"}"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
