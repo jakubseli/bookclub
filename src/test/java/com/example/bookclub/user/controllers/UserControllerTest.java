@@ -2,14 +2,19 @@ package com.example.bookclub.user.controllers;
 
 import com.example.bookclub.common.NotFoundException;
 import com.example.bookclub.config.SecurityConfig;
+import com.example.bookclub.user.models.User;
 import com.example.bookclub.user.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,6 +32,20 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @Test
+    void listIsPaginated() throws Exception {
+        User user = new User();
+        user.setUsername("john");
+        when(userService.findAll(PageRequest.of(1, 5))).thenReturn(new PageImpl<>(List.of(user), PageRequest.of(1, 5), 6));
+
+        mockMvc.perform(get("/api/v1/users").param("page", "1").param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].username").value("john"))
+                .andExpect(jsonPath("$.page.number").value(1))
+                .andExpect(jsonPath("$.page.totalElements").value(6))
+                .andExpect(jsonPath("$.page.totalPages").value(2));
+    }
 
     @Test
     void unknownUserReturns404() throws Exception {
