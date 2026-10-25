@@ -5,15 +5,18 @@ import com.example.bookclub.user.models.User;
 import com.example.bookclub.user.repositories.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Page<User> findAll(Pageable pageable) {
@@ -26,6 +29,7 @@ public class UserService {
     }
 
     public User create(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -37,6 +41,7 @@ public class UserService {
         existing.setUsername(updated.getUsername());
         existing.setEmail(updated.getEmail());
         existing.setPhoneNumber(updated.getPhoneNumber());
+        existing.setPassword(passwordEncoder.encode(updated.getPassword()));
         existing.getAddresses().clear();
         updated.getAddresses().forEach(existing::addAddress);
         return userRepository.save(existing);

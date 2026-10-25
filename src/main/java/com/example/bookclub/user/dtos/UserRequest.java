@@ -17,6 +17,7 @@ public record UserRequest(
         @NotBlank @Size(max = 255) String username,
         @NotBlank @Email @Size(max = 255) String email,
         @Size(max = 255) String phoneNumber,
+        @NotBlank @Size(min = 8, max = 72) String password,
         List<@Valid AddressRequest> addresses
 ) {
 
@@ -28,6 +29,7 @@ public record UserRequest(
         user.setUsername(username);
         user.setEmail(email);
         user.setPhoneNumber(phoneNumber);
+        user.setPassword(password);
         if (addresses != null) {
             addresses.forEach(address -> user.addAddress(address.toEntity()));
         }
