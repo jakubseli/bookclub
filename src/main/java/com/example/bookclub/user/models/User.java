@@ -1,16 +1,21 @@
 package com.example.bookclub.user.models;
 
+import com.example.bookclub.club.models.BookClub;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -34,6 +39,9 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "members")
+    private Set<BookClub> clubs = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -98,5 +106,14 @@ public class User {
     public void addAddress(Address address) {
         address.setUser(this);
         addresses.add(address);
+    }
+
+    public Set<BookClub> getClubs() {
+        return clubs;
+    }
+
+    @PreRemove
+    private void leaveClubs() {
+        clubs.forEach(club -> club.getMembers().remove(this));
     }
 }
