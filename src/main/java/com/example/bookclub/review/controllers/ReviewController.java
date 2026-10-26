@@ -35,6 +35,11 @@ public class ReviewController {
         return new PagedModel<>(reviewService.findByBook(bookId, pageable));
     }
 
+    @GetMapping("/books/{bookId}/reviews/mine")
+    public ReviewResponse findOwn(@PathVariable Long bookId, @AuthenticationPrincipal Jwt jwt) {
+        return reviewService.findOwn(bookId, userId(jwt));
+    }
+
     @PostMapping("/books/{bookId}/reviews")
     @ResponseStatus(HttpStatus.CREATED)
     public ReviewResponse create(@PathVariable Long bookId, @Valid @RequestBody ReviewRequest request,

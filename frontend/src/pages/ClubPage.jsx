@@ -34,6 +34,7 @@ function CurrentBook({ book }) {
         <>
           <p className="book-title">{book.title}</p>
           <p className="muted">{book.author}{book.publishedYear && ` · ${book.publishedYear}`}</p>
+          <Link to={`/books/${book.id}`} className="back-link">See all reviews of this book →</Link>
         </>
       ) : (
         <p className="muted">No book picked yet.</p>
@@ -73,7 +74,7 @@ export default function ClubPage() {
     return (
       <div className="stack">
         <Link to="/clubs" className="back-link">← All clubs</Link>
-        <p className="alert" role="alert">{error}</p>
+        <p className="alert" role="alert">{error.message}</p>
       </div>
     )
   }

@@ -77,7 +77,7 @@ export default function ClubsPage() {
         <h2 id="start-club-heading">Start a club</h2>
         <ClubForm idPrefix="new-club" submitLabel="Create club" onSubmit={createClub} />
       </section>
-      {error && <p className="alert" role="alert">{error}</p>}
+      {error && <p className="alert" role="alert">{error.message}</p>}
       {joinError && <p className="alert" role="alert">{joinError}</p>}
       {result && (
         <>

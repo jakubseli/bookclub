@@ -68,6 +68,23 @@ class ReviewControllerTest {
     }
 
     @Test
+    void ownReviewIsFoundByToken() throws Exception {
+        when(reviewService.findOwn(1L, 7L)).thenReturn(new ReviewResponse(3L, 1L, 7L, "john", 4, null));
+
+        mockMvc.perform(get("/api/v1/books/1/reviews/mine").with(jwt().jwt(token -> token.subject("7"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(3));
+    }
+
+    @Test
+    void noOwnReviewReturns404() throws Exception {
+        when(reviewService.findOwn(1L, 7L)).thenThrow(new NotFoundException("You have not reviewed book 1"));
+
+        mockMvc.perform(get("/api/v1/books/1/reviews/mine").with(jwt().jwt(token -> token.subject("7"))))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void updatingSomeoneElsesReviewReturns403() throws Exception {
         when(reviewService.update(eq(3L), any(Review.class), eq(8L)))
                 .thenThrow(new AccessDeniedException("Only the author can change review 3"));

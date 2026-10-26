@@ -12,7 +12,7 @@ export function useApi(path) {
     let ignore = false
     api(path)
       .then((data) => !ignore && setState({ data, error: null }))
-      .catch((e) => !ignore && setState({ data: null, error: e.message }))
+      .catch((e) => !ignore && setState({ data: null, error: e }))
     return () => {
       ignore = true
     }

@@ -31,6 +31,13 @@ public class ReviewService {
         return reviewRepository.findByBookId(bookId, pageable).map(ReviewResponse::from);
     }
 
+    @Transactional(readOnly = true)
+    public ReviewResponse findOwn(Long bookId, Long userId) {
+        return reviewRepository.findByBookIdAndUserId(bookId, userId)
+                .map(ReviewResponse::from)
+                .orElseThrow(() -> new NotFoundException("You have not reviewed book " + bookId));
+    }
+
     @Transactional
     public ReviewResponse create(Long bookId, Review review, Long userId) {
         review.setBook(bookService.findBook(bookId));

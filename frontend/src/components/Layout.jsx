@@ -18,6 +18,7 @@ export default function Layout() {
           {user && (
             <>
               <NavLink to="/clubs" className="nav-link">Clubs</NavLink>
+              <NavLink to="/books" className="nav-link">Books</NavLink>
               <span className="nav-user">{user.username}</span>
               <button type="button" className="nav-link" onClick={handleLogout}>Log out</button>
             </>
