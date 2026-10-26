@@ -864,3 +864,55 @@ label.button {
 a.button-primary {
   color: #ffffff;
 }
+
+.user-link {
+  color: inherit;
+}
+
+.profile-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+}
+
+.profile-settings {
+  margin-left: auto;
+}
+
+.avatar-large {
+  width: 72px;
+  height: 72px;
+  font-size: 30px;
+}
+
+.profile-review {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-light);
+}
+
+.profile-review-cover {
+  flex: 0 0 64px;
+}
+
+.club-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.club-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.club-row-image {
+  flex: 0 0 72px;
+  text-decoration: none;
+}

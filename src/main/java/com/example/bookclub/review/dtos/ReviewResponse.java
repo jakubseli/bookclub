@@ -1,12 +1,13 @@
 package com.example.bookclub.review.dtos;
 
+import com.example.bookclub.book.dtos.BookResponse;
 import com.example.bookclub.review.models.Review;
 
 import java.time.Instant;
 
 public record ReviewResponse(
         Long id,
-        Long bookId,
+        BookResponse book,
         Long userId,
         String username,
         double rating,
@@ -17,7 +18,7 @@ public record ReviewResponse(
     public static ReviewResponse from(Review review) {
         return new ReviewResponse(
                 review.getId(),
-                review.getBook().getId(),
+                BookResponse.from(review.getBook()),
                 review.getUser().getId(),
                 review.getUser().getUsername(),
                 review.getRating(),

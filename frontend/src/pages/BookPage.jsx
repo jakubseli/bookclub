@@ -7,6 +7,7 @@ import Pagination from '../components/Pagination.jsx'
 import ReviewForm from '../components/ReviewForm.jsx'
 import SortSelect from '../components/SortSelect.jsx'
 import StarRating from '../components/StarRating.jsx'
+import UserLink from '../components/UserLink.jsx'
 import { formatDate, plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 
@@ -75,7 +76,7 @@ function ReviewCard({ review, isOwn }) {
       <span className="avatar" aria-hidden="true">{review.username[0].toUpperCase()}</span>
       <div className="stack-sm">
         <p className="review-meta">
-          Review by <b>{review.username}</b>
+          Review by <b><UserLink id={review.userId} username={review.username} /></b>
           {isOwn && <span className="muted"> (you)</span>}
           <StarRating rating={review.rating} />
         </p>

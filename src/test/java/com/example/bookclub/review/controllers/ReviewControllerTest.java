@@ -1,5 +1,6 @@
 package com.example.bookclub.review.controllers;
 
+import com.example.bookclub.book.dtos.BookResponse;
 import com.example.bookclub.common.NotFoundException;
 import com.example.bookclub.config.SecurityConfig;
 import com.example.bookclub.review.dtos.RatingCount;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -37,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ReviewControllerTest {
 
     private static final Instant CREATED_AT = Instant.parse("2026-10-26T10:00:00Z");
+    private static final BookResponse DUNE = new BookResponse(1L, "Dune", "Frank Herbert", 1965, 11481354L);
 
     @Autowired
     private MockMvc mockMvc;
@@ -47,7 +50,7 @@ class ReviewControllerTest {
     @Test
     void createReturns201WithAuthor() throws Exception {
         when(reviewService.create(eq(1L), any(Review.class), eq(7L)))
-                .thenReturn(new ReviewResponse(3L, 1L, 7L, "john", 4.5, "Great", CREATED_AT));
+                .thenReturn(new ReviewResponse(3L, DUNE, 7L, "john", 4.5, "Great", CREATED_AT));
 
         mockMvc.perform(post("/api/v1/books/1/reviews").with(jwt().jwt(token -> token.subject("7")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -89,6 +92,17 @@ class ReviewControllerTest {
     }
 
     @Test
+    void reviewsOfAUserIncludeTheirBooks() throws Exception {
+        ReviewResponse review = new ReviewResponse(3L, DUNE, 7L, "john", 4.5, "Great", CREATED_AT);
+        when(reviewService.findByUser(eq(7L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(review)));
+
+        mockMvc.perform(get("/api/v1/users/7/reviews").with(jwt().jwt(token -> token.subject("8"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].book.title").value("Dune"))
+                .andExpect(jsonPath("$.content[0].book.coverId").value(11481354L));
+    }
+
+    @Test
     void reviewsOfUnknownBookReturn404() throws Exception {
         when(reviewService.findByBook(eq(99L), any(Pageable.class))).thenThrow(new NotFoundException("Book 99 not found"));
 
@@ -98,7 +112,7 @@ class ReviewControllerTest {
 
     @Test
     void ownReviewIsFoundByToken() throws Exception {
-        when(reviewService.findOwn(1L, 7L)).thenReturn(new ReviewResponse(3L, 1L, 7L, "john", 4.0, null, CREATED_AT));
+        when(reviewService.findOwn(1L, 7L)).thenReturn(new ReviewResponse(3L, DUNE, 7L, "john", 4.0, null, CREATED_AT));
 
         mockMvc.perform(get("/api/v1/books/1/reviews/mine").with(jwt().jwt(token -> token.subject("7"))))
                 .andExpect(status().isOk())

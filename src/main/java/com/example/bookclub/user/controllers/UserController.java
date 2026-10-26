@@ -35,6 +35,11 @@ public class UserController {
         return new PagedModel<>(userService.findAll(pageable));
     }
 
+    @GetMapping("/{id}/profile")
+    public UserSummaryResponse findProfile(@PathVariable Long id) {
+        return userService.findProfile(id);
+    }
+
     @PreAuthorize("#id.toString() == authentication.name")
     @GetMapping("/{id}")
     public UserResponse findById(@PathVariable Long id) {

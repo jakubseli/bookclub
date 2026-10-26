@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -120,6 +122,17 @@ class BookClubControllerTest {
         mockMvc.perform(delete("/api/v1/clubs/1/members/7").with(jwt().jwt(token -> token.subject("7"))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("The owner can't leave their own club"));
+    }
+
+    @Test
+    void clubsCanBeFilteredByMember() throws Exception {
+        UserSummaryResponse john = new UserSummaryResponse(7L, "john");
+        BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, List.of(), null, null, null, john, List.of(john));
+        when(bookClubService.findAll(eq(7L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(club)));
+
+        mockMvc.perform(get("/api/v1/clubs").param("memberId", "7").with(jwt()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name").value("Sci-fi"));
     }
 
     @Test

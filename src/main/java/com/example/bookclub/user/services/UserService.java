@@ -28,6 +28,11 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public UserSummaryResponse findProfile(Long id) {
+        return UserSummaryResponse.from(findUser(id));
+    }
+
+    @Transactional(readOnly = true)
     public UserResponse findById(Long id) {
         return UserResponse.from(findUser(id));
     }

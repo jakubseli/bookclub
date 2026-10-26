@@ -5,6 +5,7 @@ import BookCover from '../components/BookCover.jsx'
 import ClubImage from '../components/ClubImage.jsx'
 import StarRating from '../components/StarRating.jsx'
 import TagList from '../components/TagList.jsx'
+import UserLink from '../components/UserLink.jsx'
 import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 import { useClubTags } from '../hooks/useClubTags.js'
@@ -22,7 +23,7 @@ function RecentReviews({ bookId }) {
       {data.content.length === 0 && <p className="muted">Nobody has reviewed this book yet.</p>}
       {data.content.map((review) => (
         <article key={review.id} className="review">
-          <p className="review-meta"><b>{review.username}</b> <StarRating rating={review.rating} /></p>
+          <p className="review-meta"><b><UserLink id={review.userId} username={review.username} /></b> <StarRating rating={review.rating} /></p>
           {review.comment && <p className="muted">{review.comment}</p>}
         </article>
       ))}
@@ -64,7 +65,7 @@ function MemberList({ club, userId }) {
           <li key={member.id}>
             <span className="avatar" aria-hidden="true">{member.username[0].toUpperCase()}</span>
             <span>
-              {member.username}
+              <UserLink id={member.id} username={member.username} />
               {member.id === userId && <span className="muted"> (you)</span>}
               {member.id === club.owner.id && <span className="muted"> · owner</span>}
             </span>
@@ -117,7 +118,7 @@ export default function ClubPage() {
           </div>
           <TagList tags={club.tags} labelOf={labelOf} />
           {club.description && <p className="muted">{club.description}</p>}
-          <p className="muted small">Run by {club.owner.username} · {plural(club.members.length, 'member')}</p>
+          <p className="muted small">Run by <UserLink id={club.owner.id} username={club.owner.username} /> · {plural(club.members.length, 'member')}</p>
         </div>
         {!isMember && <button type="button" className="button button-primary" onClick={join}>Join club</button>}
         {isMember && !isOwner && <button type="button" className="button button-danger" onClick={leave}>Leave club</button>}

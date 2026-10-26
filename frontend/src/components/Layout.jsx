@@ -19,7 +19,7 @@ export default function Layout() {
             <>
               <NavLink to="/clubs" className="nav-link">Clubs</NavLink>
               <NavLink to="/books" className="nav-link">Books</NavLink>
-              <NavLink to="/profile" className="nav-link">{user.username}</NavLink>
+              <NavLink to={`/users/${user.id}`} className="nav-link">{user.username}</NavLink>
               <button type="button" className="nav-link" onClick={handleLogout}>Log out</button>
             </>
           )}

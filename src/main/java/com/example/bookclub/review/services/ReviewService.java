@@ -33,6 +33,12 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ReviewResponse> findByUser(Long userId, Pageable pageable) {
+        userService.findUser(userId);
+        return reviewRepository.findByUserId(userId, pageable).map(ReviewResponse::from);
+    }
+
+    @Transactional(readOnly = true)
     public RatingSummaryResponse findRatings(Long bookId) {
         bookService.findBook(bookId);
         return RatingSummaryResponse.from(reviewRepository.countRatingsByBookId(bookId));

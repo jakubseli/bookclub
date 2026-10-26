@@ -6,6 +6,7 @@ import ClubImage from '../components/ClubImage.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SortSelect from '../components/SortSelect.jsx'
 import TagList from '../components/TagList.jsx'
+import UserLink from '../components/UserLink.jsx'
 import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 import { useClubTags } from '../hooks/useClubTags.js'
@@ -34,7 +35,7 @@ function ClubCard({ club, userId, labelOf, onJoin }) {
         {club.description && <p className="muted">{club.description}</p>}
         <p>{club.currentBook ? <>Reading: <b>{club.currentBook.title}</b></> : <span className="muted">No book picked yet</span>}</p>
         <p className="muted small">
-          {plural(club.members.length, 'member')} · run by {club.owner.username}
+          {plural(club.members.length, 'member')} · run by <UserLink id={club.owner.id} username={club.owner.username} />
         </p>
         <div className="actions">
           {isMember ? (

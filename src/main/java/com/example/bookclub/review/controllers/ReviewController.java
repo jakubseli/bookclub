@@ -35,6 +35,11 @@ public class ReviewController {
         return new PagedModel<>(reviewService.findByBook(bookId, pageable));
     }
 
+    @GetMapping("/users/{userId}/reviews")
+    public PagedModel<ReviewResponse> findByUser(@PathVariable Long userId, @ParameterObject Pageable pageable) {
+        return new PagedModel<>(reviewService.findByUser(userId, pageable));
+    }
+
     @GetMapping("/books/{bookId}/ratings")
     public RatingSummaryResponse findRatings(@PathVariable Long bookId) {
         return reviewService.findRatings(bookId);

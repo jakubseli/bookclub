@@ -52,6 +52,16 @@ class UserControllerTest {
     }
 
     @Test
+    void anyoneLoggedInCanSeeAProfile() throws Exception {
+        when(userService.findProfile(2L)).thenReturn(new UserSummaryResponse(2L, "jane"));
+
+        mockMvc.perform(get("/api/v1/users/2/profile").with(jwt().jwt(token -> token.subject("1"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("jane"))
+                .andExpect(jsonPath("$.email").doesNotExist());
+    }
+
+    @Test
     void unknownUserReturns404() throws Exception {
         when(userService.findById(99L)).thenThrow(new NotFoundException("User 99 not found"));
 

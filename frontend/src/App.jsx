@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage.jsx'
 import NewClubPage from './pages/NewClubPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
+import SettingsPage from './pages/SettingsPage.jsx'
 
 export default function App() {
   return (
@@ -27,7 +28,8 @@ export default function App() {
           <Route path="/clubs/:id/settings" element={<ClubSettingsPage />} />
           <Route path="/books" element={<BooksPage />} />
           <Route path="/books/:id" element={<BookPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/users/:id" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/clubs" replace />} />
       </Route>

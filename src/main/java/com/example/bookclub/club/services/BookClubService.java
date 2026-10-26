@@ -42,8 +42,11 @@ public class BookClubService {
     }
 
     @Transactional(readOnly = true)
-    public Page<BookClubResponse> findAll(Pageable pageable) {
-        return bookClubRepository.findAll(pageable).map(BookClubResponse::from);
+    public Page<BookClubResponse> findAll(Long memberId, Pageable pageable) {
+        Page<BookClub> clubs = memberId == null
+                ? bookClubRepository.findAll(pageable)
+                : bookClubRepository.findByMembersId(memberId, pageable);
+        return clubs.map(BookClubResponse::from);
     }
 
     @Transactional(readOnly = true)

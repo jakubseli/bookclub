@@ -42,8 +42,9 @@ public class BookClubController {
     }
 
     @GetMapping
-    public PagedModel<BookClubResponse> findAll(@ParameterObject Pageable pageable) {
-        return new PagedModel<>(bookClubService.findAll(pageable));
+    public PagedModel<BookClubResponse> findAll(@RequestParam(required = false) Long memberId,
+                                                @ParameterObject Pageable pageable) {
+        return new PagedModel<>(bookClubService.findAll(memberId, pageable));
     }
 
     @GetMapping("/tags")

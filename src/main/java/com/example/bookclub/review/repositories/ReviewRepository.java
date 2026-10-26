@@ -14,6 +14,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Page<Review> findByBookId(Long bookId, Pageable pageable);
 
+    Page<Review> findByUserId(Long userId, Pageable pageable);
+
     Optional<Review> findByBookIdAndUserId(Long bookId, Long userId);
 
     @Query("select new com.example.bookclub.review.dtos.RatingCount(r.rating, count(r)) "
