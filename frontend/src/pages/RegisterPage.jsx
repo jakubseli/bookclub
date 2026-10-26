@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router'
-import { api } from '../api.js'
+import { api, describeError } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import FormField from '../components/FormField.jsx'
 
@@ -14,13 +14,6 @@ function toUserRequest(form) {
     lastName: form.lastName || null,
     phoneNumber: form.phoneNumber || null,
   }
-}
-
-function errorMessage(e) {
-  if (e.status === 409) {
-    return 'That username or email is already taken.'
-  }
-  return Object.keys(e.fieldErrors).length > 0 ? 'Please fix the highlighted fields.' : e.message
 }
 
 export default function RegisterPage() {
@@ -47,7 +40,7 @@ export default function RegisterPage() {
       await api('/users', { method: 'POST', body: toUserRequest(form) })
       await login(form.username, form.password)
     } catch (e) {
-      setError(errorMessage(e))
+      setError(describeError(e, 'That username or email is already taken.'))
       setFieldErrors(e.fieldErrors)
       setSubmitting(false)
     }

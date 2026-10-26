@@ -15,6 +15,13 @@ export class ApiError extends Error {
   }
 }
 
+export function describeError(e, conflictMessage) {
+  if (e.status === 409) {
+    return conflictMessage
+  }
+  return Object.keys(e.fieldErrors).length > 0 ? 'Please fix the highlighted fields.' : e.message
+}
+
 export async function api(path, { method = 'GET', body } = {}) {
   const token = tokenStore.get()
   const response = await fetch(API_URL + path, {
