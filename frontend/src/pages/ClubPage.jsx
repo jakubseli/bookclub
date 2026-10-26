@@ -4,9 +4,10 @@ import { useAuth } from '../auth/AuthContext.js'
 import BookCover from '../components/BookCover.jsx'
 import ClubImage from '../components/ClubImage.jsx'
 import StarRating from '../components/StarRating.jsx'
+import SunPath from '../components/SunPath.jsx'
 import TagList from '../components/TagList.jsx'
 import UserLink from '../components/UserLink.jsx'
-import { formatDay, plural } from '../format.js'
+import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 import { useClubTags } from '../hooks/useClubTags.js'
 import { useSubmit } from '../hooks/useSubmit.js'
@@ -44,7 +45,7 @@ function CurrentBook({ club, readingPath }) {
           <div className="stack-sm">
             <p className="book-title">{book.title}</p>
             <p className="muted">{book.author}{book.publishedYear && ` · ${book.publishedYear}`}</p>
-            {club.readingFrom && <p>{formatDay(club.readingFrom)} – {formatDay(club.readingUntil)}</p>}
+            {club.readingFrom && <SunPath from={club.readingFrom} until={club.readingUntil} />}
             <Link to={`/books/${book.id}`} className="back-link">See all reviews of this book →</Link>
             {readingPath && <Link to={readingPath} className="button align-start">Change book</Link>}
           </div>
@@ -112,20 +113,22 @@ export default function ClubPage() {
   return (
     <div className="stack">
       <Link to="/clubs" className="back-link">← All clubs</Link>
-      <ClubImage club={club} className="club-banner" />
-      <div className="toolbar">
-        <div className="stack-sm">
-          <div className="title-row">
-            <h1>{club.name}</h1>
-            {isOwner ? <span className="badge badge-owner">You run this club</span> : isMember && <span className="badge badge-member">You're a member</span>}
+      <header className="club-header">
+        <ClubImage club={club} className="club-header-image" />
+        <div className="club-header-body stack">
+          <div className="stack-sm">
+            <div className="title-row">
+              <h1>{club.name}</h1>
+              {isOwner ? <span className="badge badge-owner">You run this club</span> : isMember && <span className="badge badge-member">You're a member</span>}
+            </div>
+            <TagList tags={club.tags} labelOf={labelOf} />
           </div>
-          <TagList tags={club.tags} labelOf={labelOf} />
-          {club.description && <p className="muted">{club.description}</p>}
+          {club.description && <p className="lead">{club.description}</p>}
           <p className="muted small">Run by <UserLink id={club.owner.id} username={club.owner.username} /> · {plural(club.members.length, 'member')}</p>
+          {!isMember && <button type="button" className="button button-primary align-start" onClick={join}>Join club</button>}
+          {isMember && !isOwner && <button type="button" className="button button-danger align-start" onClick={leave}>Leave club</button>}
         </div>
-        {!isMember && <button type="button" className="button button-primary" onClick={join}>Join club</button>}
-        {isMember && !isOwner && <button type="button" className="button button-danger" onClick={leave}>Leave club</button>}
-      </div>
+      </header>
       {actionError && <p className="alert" role="alert">{actionError}</p>}
       <div className="two-column">
         <div className="column-main stack">

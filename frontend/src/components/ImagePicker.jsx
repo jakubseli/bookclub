@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { API_ORIGIN } from '../api.js'
-import { IMAGE_TYPES, MAX_IMAGE_BYTES, PRESET_IMAGE_COUNT } from '../clubs.js'
+import { IMAGE_TYPES, MAX_IMAGE_BYTES } from '../clubs.js'
 import { PresetImage } from './ClubImage.jsx'
-
-const PRESETS = Array.from({ length: PRESET_IMAGE_COUNT }, (_, index) => index + 1)
+import { PRESETS } from './clubPresets.jsx'
 
 export default function ImagePicker({ currentImageUrl, preset, file, onChange }) {
   const [fileError, setFileError] = useState(null)
@@ -39,11 +38,11 @@ export default function ImagePicker({ currentImageUrl, preset, file, onChange })
             <span>Current image</span>
           </label>
         )}
-        {PRESETS.map((number) => (
-          <label key={number} className="image-option">
-            <input type="radio" name="club-image" className="visually-hidden" checked={selected === `preset-${number}`} onChange={() => onChange({ preset: number, file: null })} />
-            <PresetImage preset={number} />
-            <span className="visually-hidden">Preset {number}</span>
+        {PRESETS.map(({ name }, index) => (
+          <label key={name} className="image-option">
+            <input type="radio" name="club-image" className="visually-hidden" checked={selected === `preset-${index + 1}`} onChange={() => onChange({ preset: index + 1, file: null })} />
+            <PresetImage preset={index + 1} />
+            <span className="visually-hidden">{name}</span>
           </label>
         ))}
         <label className="image-option image-option-upload">

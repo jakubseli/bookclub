@@ -148,15 +148,15 @@ export default function BookPage() {
       <BackToBooks />
       <div className="book-layout">
         <aside className="book-aside stack">
-          <BookCover key={coverIds[coverIndex]} coverId={coverIds[coverIndex]} title={title} size="L" alt={`Cover of ${title}`} />
+          <div className="cover-stage">
+            <BookCover key={coverIds[coverIndex]} coverId={coverIds[coverIndex]} title={title} size="L" alt={`Cover of ${title}`} />
+          </div>
           {coverIds.length > 1 && <CoverGallery title={title} coverIds={coverIds} selected={coverIndex} onSelect={setCoverIndex} />}
         </aside>
         <div className="book-main stack">
           <header className="stack-sm">
-            <h1>
-              {title} {publishedYear && <span className="book-year">{publishedYear}</span>}
-            </h1>
-            <p className="lead">by {author}</p>
+            <h1 className="book-heading">{title}</h1>
+            <p className="lead">{publishedYear && `${publishedYear} · `}by {author}</p>
           </header>
           {description && (
             <div className="book-description">

@@ -1,10 +1,11 @@
 import { API_ORIGIN } from '../api.js'
+import { PRESETS } from './clubPresets.jsx'
 
 export function PresetImage({ preset, className = '' }) {
   return (
-    <div className={`club-image club-image-placeholder ${className}`} aria-hidden="true">
-      <span>Preset {preset}</span>
-    </div>
+    <svg className={`club-image ${className}`} viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      {PRESETS[preset - 1].art}
+    </svg>
   )
 }
 
