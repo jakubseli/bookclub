@@ -1,13 +1,15 @@
 import { Link, useNavigate, useParams } from 'react-router'
 import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
+import BookCover from '../components/BookCover.jsx'
 import ClubForm from '../components/ClubForm.jsx'
+import StarRating from '../components/StarRating.jsx'
 import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 import { useSubmit } from '../hooks/useSubmit.js'
 
 function RecentReviews({ bookId }) {
-  const { data } = useApi(`/books/${bookId}/reviews?size=2&sort=id,desc`)
+  const { data } = useApi(`/books/${bookId}/reviews?size=2&sort=createdAt,desc`)
 
   if (!data) {
     return null
@@ -18,7 +20,7 @@ function RecentReviews({ bookId }) {
       {data.content.length === 0 && <p className="muted">Nobody has reviewed this book yet.</p>}
       {data.content.map((review) => (
         <article key={review.id} className="review">
-          <p><b>{review.username}</b> <span className="rating">{review.rating} / 5</span></p>
+          <p className="review-meta"><b>{review.username}</b> <StarRating rating={review.rating} /></p>
           {review.comment && <p className="muted">{review.comment}</p>}
         </article>
       ))}
@@ -31,11 +33,16 @@ function CurrentBook({ book }) {
     <section className="card stack-sm" aria-labelledby="current-book-heading">
       <h2 id="current-book-heading" className="section-label">Currently reading</h2>
       {book ? (
-        <>
-          <p className="book-title">{book.title}</p>
-          <p className="muted">{book.author}{book.publishedYear && ` · ${book.publishedYear}`}</p>
-          <Link to={`/books/${book.id}`} className="back-link">See all reviews of this book →</Link>
-        </>
+        <div className="current-book">
+          <Link to={`/books/${book.id}`} className="current-book-cover">
+            <BookCover coverId={book.coverId} title={book.title} alt={`Cover of ${book.title}`} />
+          </Link>
+          <div className="stack-sm">
+            <p className="book-title">{book.title}</p>
+            <p className="muted">{book.author}{book.publishedYear && ` · ${book.publishedYear}`}</p>
+            <Link to={`/books/${book.id}`} className="back-link">See all reviews of this book →</Link>
+          </div>
+        </div>
       ) : (
         <p className="muted">No book picked yet.</p>
       )}

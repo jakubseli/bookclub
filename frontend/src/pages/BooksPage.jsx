@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import BookCover from '../components/BookCover.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SortSelect from '../components/SortSelect.jsx'
 import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 24
 const SORTS = [
   { value: 'title,asc', label: 'Title' },
   { value: 'author,asc', label: 'Author' },
@@ -36,26 +37,17 @@ export default function BooksPage() {
             <p className="muted">{plural(result.page.totalElements, 'book')}</p>
             <SortSelect id="book-sort" options={SORTS} value={sort} onChange={changeSort} />
           </div>
-          <div className="table-box">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th scope="col">Title</th>
-                  <th scope="col">Author</th>
-                  <th scope="col">Year</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.content.map((book) => (
-                  <tr key={book.id}>
-                    <td><Link to={`/books/${book.id}`} className="plain-link"><b>{book.title}</b></Link></td>
-                    <td>{book.author}</td>
-                    <td>{book.publishedYear}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="book-grid">
+            {result.content.map((book) => (
+              <li key={book.id}>
+                <Link to={`/books/${book.id}`} className="book-card">
+                  <BookCover coverId={book.coverId} title={book.title} />
+                  <span className="book-card-title">{book.title}</span>
+                  <span className="book-card-author">{book.author}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
           <Pagination page={result.page} onChange={setPage} />
         </>
       )}

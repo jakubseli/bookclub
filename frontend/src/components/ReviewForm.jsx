@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useSubmit } from '../hooks/useSubmit.js'
-
-const RATINGS = [1, 2, 3, 4, 5]
+import StarInput from './StarInput.jsx'
 
 export default function ReviewForm({ review, onSave, onDelete }) {
   const [rating, setRating] = useState(review?.rating ?? null)
@@ -28,18 +27,7 @@ export default function ReviewForm({ review, onSave, onDelete }) {
         <p className="muted small">You can review each book once and change it any time.</p>
       </div>
       {error && <p className="alert" role="alert">{error}</p>}
-      <fieldset className="rating-options" aria-describedby={fieldErrors.rating ? 'rating-error' : undefined}>
-        <legend>Rating *</legend>
-        <div className="actions">
-          {RATINGS.map((value) => (
-            <label key={value} className="rating-option">
-              <input type="radio" name="rating" value={value} checked={rating === value} onChange={() => setRating(value)} />
-              {value}
-            </label>
-          ))}
-        </div>
-        {fieldErrors.rating && <p id="rating-error" className="field-error">{fieldErrors.rating}</p>}
-      </fieldset>
+      <StarInput value={rating} onChange={setRating} error={fieldErrors.rating} />
       <div className="field">
         <label htmlFor="review-comment">Comment</label>
         <textarea
