@@ -5,8 +5,10 @@ import RequireAuth from './components/RequireAuth.jsx'
 import BookPage from './pages/BookPage.jsx'
 import BooksPage from './pages/BooksPage.jsx'
 import ClubPage from './pages/ClubPage.jsx'
+import ClubSettingsPage from './pages/ClubSettingsPage.jsx'
 import ClubsPage from './pages/ClubsPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import NewClubPage from './pages/NewClubPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 
@@ -20,7 +22,9 @@ export default function App() {
         </Route>
         <Route element={<RequireAuth />}>
           <Route path="/clubs" element={<ClubsPage />} />
+          <Route path="/clubs/new" element={<NewClubPage />} />
           <Route path="/clubs/:id" element={<ClubPage />} />
+          <Route path="/clubs/:id/settings" element={<ClubSettingsPage />} />
           <Route path="/books" element={<BooksPage />} />
           <Route path="/books/:id" element={<BookPage />} />
           <Route path="/profile" element={<ProfilePage />} />
