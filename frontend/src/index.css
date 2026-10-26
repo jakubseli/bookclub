@@ -76,7 +76,7 @@ input, button, select, textarea {
   text-decoration: none;
 }
 
-.nav-link, .nav-user {
+.nav-link {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -393,6 +393,24 @@ a.button {
 
 .danger-zone {
   border-color: #f4b4ae;
+}
+
+h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.address {
+  margin: 0;
+  padding: 16px 20px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.address legend {
+  padding: 0 6px;
+  font-weight: 600;
 }
 
 .readable {

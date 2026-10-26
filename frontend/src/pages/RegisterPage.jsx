@@ -3,18 +3,9 @@ import { Link, Navigate } from 'react-router'
 import { api, describeError } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import FormField from '../components/FormField.jsx'
+import { toUserRequest } from '../users.js'
 
 const EMPTY_FORM = { username: '', email: '', password: '', age: '', firstName: '', lastName: '', phoneNumber: '' }
-
-function toUserRequest(form) {
-  return {
-    ...form,
-    age: form.age === '' ? null : Number(form.age),
-    firstName: form.firstName || null,
-    lastName: form.lastName || null,
-    phoneNumber: form.phoneNumber || null,
-  }
-}
 
 export default function RegisterPage() {
   const { user, login } = useAuth()
