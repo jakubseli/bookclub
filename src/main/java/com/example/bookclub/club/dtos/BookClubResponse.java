@@ -15,6 +15,7 @@ public record BookClubResponse(
         List<MemberResponse> members
 ) {
 
+    @SuppressWarnings("null")
     public static BookClubResponse from(BookClub club) {
         return new BookClubResponse(
                 club.getId(),
