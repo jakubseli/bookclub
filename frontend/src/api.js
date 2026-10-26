@@ -16,10 +16,10 @@ export class ApiError extends Error {
 }
 
 export function describeError(e, conflictMessage) {
-  if (e.status === 409) {
+  if (e.status === 409 && conflictMessage) {
     return conflictMessage
   }
-  return Object.keys(e.fieldErrors).length > 0 ? 'Please fix the highlighted fields.' : e.message
+  return Object.keys(e.fieldErrors ?? {}).length > 0 ? 'Please fix the highlighted fields.' : e.message
 }
 
 export async function api(path, { method = 'GET', body } = {}) {

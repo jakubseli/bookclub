@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { api, describeError } from '../api.js'
+import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import FormField from '../components/FormField.jsx'
 import { useApi } from '../hooks/useApi.js'
+import { useSubmit } from '../hooks/useSubmit.js'
 import { toUserRequest } from '../users.js'
 
 const EMPTY_ADDRESS = { street: '', city: '', state: '', postalCode: '', country: '' }
@@ -61,10 +62,8 @@ function AddressFields({ index, address, fieldErrors, onChange, onRemove }) {
 function ProfileForm({ profile }) {
   const { login } = useAuth()
   const [form, setForm] = useState(() => toForm(profile))
-  const [fieldErrors, setFieldErrors] = useState({})
-  const [error, setError] = useState(null)
   const [saved, setSaved] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const { submit, submitting, error, fieldErrors } = useSubmit('That username or email is already taken.')
 
   function update(changes) {
     setForm({ ...form, ...changes })
@@ -78,20 +77,13 @@ function ProfileForm({ profile }) {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    setFieldErrors({})
-    try {
+    const succeeded = await submit(async () => {
       await api(`/users/${profile.id}`, { method: 'PUT', body: toUserRequest(form) })
-      // logging in again refreshes the token, so a new username or password takes effect right away
       await login(form.username, form.password)
-      setForm({ ...form, password: '' })
+    })
+    if (succeeded) {
+      setForm((current) => ({ ...current, password: '' }))
       setSaved(true)
-    } catch (e) {
-      setError(describeError(e, 'That username or email is already taken.'))
-      setFieldErrors(e.fieldErrors)
-    } finally {
-      setSubmitting(false)
     }
   }
 
@@ -156,18 +148,15 @@ export default function ProfilePage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { data: profile, error } = useApi(`/users/${user.id}`)
-  const [deleteError, setDeleteError] = useState(null)
+  const { submit, error: deleteError } = useSubmit()
 
-  async function deleteAccount() {
-    if (!window.confirm("Delete your account, the clubs you own and your reviews? This can't be undone.")) {
-      return
-    }
-    try {
-      await api(`/users/${user.id}`, { method: 'DELETE' })
-      logout()
-      navigate('/login')
-    } catch (e) {
-      setDeleteError(e.message)
+  function deleteAccount() {
+    if (window.confirm("Delete your account, the clubs you own and your reviews? This can't be undone.")) {
+      submit(async () => {
+        await api(`/users/${user.id}`, { method: 'DELETE' })
+        logout()
+        navigate('/login')
+      })
     }
   }
 

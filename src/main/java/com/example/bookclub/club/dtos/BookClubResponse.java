@@ -2,6 +2,7 @@ package com.example.bookclub.club.dtos;
 
 import com.example.bookclub.book.dtos.BookResponse;
 import com.example.bookclub.club.models.BookClub;
+import com.example.bookclub.user.dtos.UserSummaryResponse;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,8 +12,8 @@ public record BookClubResponse(
         String name,
         String description,
         BookResponse currentBook,
-        MemberResponse owner,
-        List<MemberResponse> members
+        UserSummaryResponse owner,
+        List<UserSummaryResponse> members
 ) {
 
     @SuppressWarnings("null")
@@ -22,10 +23,10 @@ public record BookClubResponse(
                 club.getName(),
                 club.getDescription(),
                 club.getCurrentBook() == null ? null : BookResponse.from(club.getCurrentBook()),
-                MemberResponse.from(club.getOwner()),
+                UserSummaryResponse.from(club.getOwner()),
                 club.getMembers().stream()
-                        .map(MemberResponse::from)
-                        .sorted(Comparator.comparing(MemberResponse::username))
+                        .map(UserSummaryResponse::from)
+                        .sorted(Comparator.comparing(UserSummaryResponse::username))
                         .toList()
         );
     }

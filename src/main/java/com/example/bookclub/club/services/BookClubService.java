@@ -5,6 +5,7 @@ import com.example.bookclub.book.services.BookService;
 import com.example.bookclub.club.dtos.BookClubResponse;
 import com.example.bookclub.club.models.BookClub;
 import com.example.bookclub.club.repositories.BookClubRepository;
+import com.example.bookclub.common.ConflictException;
 import com.example.bookclub.common.NotFoundException;
 import com.example.bookclub.user.models.User;
 import com.example.bookclub.user.services.UserService;
@@ -69,7 +70,11 @@ public class BookClubService {
 
     @Transactional
     public void removeMember(Long clubId, Long userId) {
-        findClub(clubId).removeMember(userService.findUser(userId));
+        BookClub club = findClub(clubId);
+        if (club.isOwnedBy(userId)) {
+            throw new ConflictException("The owner can't leave their own club");
+        }
+        club.removeMember(userService.findUser(userId));
     }
 
     private BookClub findClub(Long id) {

@@ -4,8 +4,10 @@ import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import ClubForm from '../components/ClubForm.jsx'
 import Pagination from '../components/Pagination.jsx'
+import SortSelect from '../components/SortSelect.jsx'
 import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
+import { useSubmit } from '../hooks/useSubmit.js'
 
 const PAGE_SIZE = 6
 const SORTS = [
@@ -45,7 +47,7 @@ export default function ClubsPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
   const [sort, setSort] = useState(SORTS[0].value)
-  const [joinError, setJoinError] = useState(null)
+  const { submit, error: joinError } = useSubmit()
   const { data: result, error } = useApi(`/clubs?page=${page}&size=${PAGE_SIZE}&sort=${sort}`)
 
   async function createClub(request) {
@@ -53,17 +55,13 @@ export default function ClubsPage() {
     navigate(`/clubs/${club.id}`)
   }
 
-  async function joinClub(clubId) {
-    try {
-      await api(`/clubs/${clubId}/members/${user.id}`, { method: 'POST' })
-      navigate(`/clubs/${clubId}`)
-    } catch (e) {
-      setJoinError(e.message)
-    }
-  }
+  const joinClub = (clubId) => submit(async () => {
+    await api(`/clubs/${clubId}/members/${user.id}`, { method: 'POST' })
+    navigate(`/clubs/${clubId}`)
+  })
 
-  function changeSort(event) {
-    setSort(event.target.value)
+  function changeSort(value) {
+    setSort(value)
     setPage(0)
   }
 
@@ -83,12 +81,7 @@ export default function ClubsPage() {
         <>
           <div className="toolbar">
             <p className="muted">{plural(result.page.totalElements, 'club')}</p>
-            <div className="inline-field">
-              <label htmlFor="club-sort">Sort by</label>
-              <select id="club-sort" value={sort} onChange={changeSort}>
-                {SORTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </div>
+            <SortSelect id="club-sort" options={SORTS} value={sort} onChange={changeSort} />
           </div>
           {result.content.length === 0 ? (
             <p className="muted">No clubs yet. Start the first one above.</p>

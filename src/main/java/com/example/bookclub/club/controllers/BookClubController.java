@@ -3,14 +3,13 @@ package com.example.bookclub.club.controllers;
 import com.example.bookclub.club.dtos.BookClubRequest;
 import com.example.bookclub.club.dtos.BookClubResponse;
 import com.example.bookclub.club.services.BookClubService;
+import com.example.bookclub.common.CurrentUserId;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,20 +42,20 @@ public class BookClubController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BookClubResponse create(@Valid @RequestBody BookClubRequest request, @AuthenticationPrincipal Jwt jwt) {
-        return bookClubService.create(request.toEntity(), request.currentBookId(), userId(jwt));
+    public BookClubResponse create(@Valid @RequestBody BookClubRequest request, @CurrentUserId Long userId) {
+        return bookClubService.create(request.toEntity(), request.currentBookId(), userId);
     }
 
     @PutMapping("/{id}")
     public BookClubResponse update(@PathVariable Long id, @Valid @RequestBody BookClubRequest request,
-                                   @AuthenticationPrincipal Jwt jwt) {
-        return bookClubService.update(id, request.toEntity(), request.currentBookId(), userId(jwt));
+                                   @CurrentUserId Long userId) {
+        return bookClubService.update(id, request.toEntity(), request.currentBookId(), userId);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        bookClubService.delete(id, userId(jwt));
+    public void delete(@PathVariable Long id, @CurrentUserId Long userId) {
+        bookClubService.delete(id, userId);
     }
 
     @PreAuthorize("#userId.toString() == authentication.name")
@@ -70,9 +69,5 @@ public class BookClubController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeMember(@PathVariable Long id, @PathVariable Long userId) {
         bookClubService.removeMember(id, userId);
-    }
-
-    private static Long userId(Jwt jwt) {
-        return Long.valueOf(jwt.getSubject());
     }
 }

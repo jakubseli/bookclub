@@ -30,6 +30,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private static final String FRONTEND_ORIGIN = "http://localhost:5173";
+    private static final int MIN_SECRET_BYTES = 32;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -57,7 +58,11 @@ public class SecurityConfig {
 
     @Bean
     public SecretKey jwtKey(@Value("${jwt.secret}") String secret) {
-        return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException("jwt.secret must be at least " + MIN_SECRET_BYTES + " bytes long");
+        }
+        return new SecretKeySpec(bytes, "HmacSHA256");
     }
 
     @Bean

@@ -1,5 +1,6 @@
 package com.example.bookclub.review.controllers;
 
+import com.example.bookclub.common.CurrentUserId;
 import com.example.bookclub.review.dtos.ReviewRequest;
 import com.example.bookclub.review.dtos.ReviewResponse;
 import com.example.bookclub.review.services.ReviewService;
@@ -8,8 +9,6 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,30 +35,26 @@ public class ReviewController {
     }
 
     @GetMapping("/books/{bookId}/reviews/mine")
-    public ReviewResponse findOwn(@PathVariable Long bookId, @AuthenticationPrincipal Jwt jwt) {
-        return reviewService.findOwn(bookId, userId(jwt));
+    public ReviewResponse findOwn(@PathVariable Long bookId, @CurrentUserId Long userId) {
+        return reviewService.findOwn(bookId, userId);
     }
 
     @PostMapping("/books/{bookId}/reviews")
     @ResponseStatus(HttpStatus.CREATED)
     public ReviewResponse create(@PathVariable Long bookId, @Valid @RequestBody ReviewRequest request,
-                                 @AuthenticationPrincipal Jwt jwt) {
-        return reviewService.create(bookId, request.toEntity(), userId(jwt));
+                                 @CurrentUserId Long userId) {
+        return reviewService.create(bookId, request.toEntity(), userId);
     }
 
     @PutMapping("/reviews/{id}")
     public ReviewResponse update(@PathVariable Long id, @Valid @RequestBody ReviewRequest request,
-                                 @AuthenticationPrincipal Jwt jwt) {
-        return reviewService.update(id, request.toEntity(), userId(jwt));
+                                 @CurrentUserId Long userId) {
+        return reviewService.update(id, request.toEntity(), userId);
     }
 
     @DeleteMapping("/reviews/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        reviewService.delete(id, userId(jwt));
-    }
-
-    private static Long userId(Jwt jwt) {
-        return Long.valueOf(jwt.getSubject());
+    public void delete(@PathVariable Long id, @CurrentUserId Long userId) {
+        reviewService.delete(id, userId);
     }
 }

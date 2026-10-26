@@ -2,7 +2,7 @@ package com.example.bookclub.user.controllers;
 
 import com.example.bookclub.common.NotFoundException;
 import com.example.bookclub.config.SecurityConfig;
-import com.example.bookclub.user.dtos.UserResponse;
+import com.example.bookclub.user.dtos.UserSummaryResponse;
 import com.example.bookclub.user.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +39,13 @@ class UserControllerTest {
 
     @Test
     void listIsPaginated() throws Exception {
-        UserResponse user = new UserResponse(1L, null, null, 30, "john", "john@example.com", null, List.of());
+        UserSummaryResponse user = new UserSummaryResponse(1L, "john");
         when(userService.findAll(PageRequest.of(1, 5))).thenReturn(new PageImpl<>(List.of(user), PageRequest.of(1, 5), 6));
 
         mockMvc.perform(get("/api/v1/users").param("page", "1").param("size", "5").with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].username").value("john"))
+                .andExpect(jsonPath("$.content[0].email").doesNotExist())
                 .andExpect(jsonPath("$.page.number").value(1))
                 .andExpect(jsonPath("$.page.totalElements").value(6))
                 .andExpect(jsonPath("$.page.totalPages").value(2));
@@ -54,8 +55,14 @@ class UserControllerTest {
     void unknownUserReturns404() throws Exception {
         when(userService.findById(99L)).thenThrow(new NotFoundException("User 99 not found"));
 
-        mockMvc.perform(get("/api/v1/users/99").with(jwt()))
+        mockMvc.perform(get("/api/v1/users/99").with(jwt().jwt(token -> token.subject("99"))))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void readingAnotherUsersProfileReturns403() throws Exception {
+        mockMvc.perform(get("/api/v1/users/2").with(jwt().jwt(token -> token.subject("1"))))
+                .andExpect(status().isForbidden());
     }
 
     @Test

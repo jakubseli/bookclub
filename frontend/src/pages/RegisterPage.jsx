@@ -1,40 +1,28 @@
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router'
-import { api, describeError } from '../api.js'
+import { Link } from 'react-router'
+import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import FormField from '../components/FormField.jsx'
+import { useSubmit } from '../hooks/useSubmit.js'
 import { toUserRequest } from '../users.js'
 
 const EMPTY_FORM = { username: '', email: '', password: '', age: '', firstName: '', lastName: '', phoneNumber: '' }
 
 export default function RegisterPage() {
-  const { user, login } = useAuth()
+  const { login } = useAuth()
   const [form, setForm] = useState(EMPTY_FORM)
-  const [fieldErrors, setFieldErrors] = useState({})
-  const [error, setError] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
-
-  if (user) {
-    return <Navigate to="/clubs" replace />
-  }
+  const { submit, submitting, error, fieldErrors } = useSubmit('That username or email is already taken.')
 
   function handleChange(event) {
     setForm({ ...form, [event.target.name]: event.target.value })
   }
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    setFieldErrors({})
-    try {
+    submit(async () => {
       await api('/users', { method: 'POST', body: toUserRequest(form) })
       await login(form.username, form.password)
-    } catch (e) {
-      setError(describeError(e, 'That username or email is already taken.'))
-      setFieldErrors(e.fieldErrors)
-      setSubmitting(false)
-    }
+    })
   }
 
   const field = (name, label, props = {}) => (

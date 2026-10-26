@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describeError } from '../api.js'
+import { useSubmit } from '../hooks/useSubmit.js'
 import BookSelect from './BookSelect.jsx'
 import FormField from './FormField.jsx'
 
@@ -21,10 +21,8 @@ function toClubRequest(form) {
 
 export default function ClubForm({ idPrefix, club, submitLabel, onSubmit }) {
   const [form, setForm] = useState(() => toForm(club))
-  const [fieldErrors, setFieldErrors] = useState({})
-  const [error, setError] = useState(null)
   const [saved, setSaved] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const { submit, submitting, error, fieldErrors } = useSubmit('A club with that name already exists.')
 
   function handleChange(event) {
     setForm({ ...form, [event.target.name]: event.target.value })
@@ -33,18 +31,7 @@ export default function ClubForm({ idPrefix, club, submitLabel, onSubmit }) {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    setFieldErrors({})
-    try {
-      await onSubmit(toClubRequest(form))
-      setSaved(true)
-    } catch (e) {
-      setError(describeError(e, 'A club with that name already exists.'))
-      setFieldErrors(e.fieldErrors)
-    } finally {
-      setSubmitting(false)
-    }
+    setSaved(await submit(() => onSubmit(toClubRequest(form))))
   }
 
   return (

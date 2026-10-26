@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router'
+import GuestOnly from './components/GuestOnly.jsx'
 import Layout from './components/Layout.jsx'
 import RequireAuth from './components/RequireAuth.jsx'
 import BookPage from './pages/BookPage.jsx'
@@ -13,8 +14,10 @@ export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route element={<GuestOnly />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
         <Route element={<RequireAuth />}>
           <Route path="/clubs" element={<ClubsPage />} />
           <Route path="/clubs/:id" element={<ClubPage />} />

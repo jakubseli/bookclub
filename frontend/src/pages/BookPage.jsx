@@ -4,6 +4,7 @@ import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import Pagination from '../components/Pagination.jsx'
 import ReviewForm from '../components/ReviewForm.jsx'
+import SortSelect from '../components/SortSelect.jsx'
 import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 
@@ -70,8 +71,8 @@ export default function BookPage() {
     reviews.reload()
   }
 
-  function changeSort(event) {
-    setSort(event.target.value)
+  function changeSort(value) {
+    setSort(value)
     setPage(0)
   }
 
@@ -89,12 +90,7 @@ export default function BookPage() {
       <section className="stack" aria-labelledby="reviews-heading">
         <div className="toolbar">
           <h2 id="reviews-heading">Reviews</h2>
-          <div className="inline-field">
-            <label htmlFor="review-sort">Sort by</label>
-            <select id="review-sort" value={sort} onChange={changeSort}>
-              {SORTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </div>
+          <SortSelect id="review-sort" options={SORTS} value={sort} onChange={changeSort} />
         </div>
         {reviews.error && <p className="alert" role="alert">{reviews.error.message}</p>}
         {reviews.data && (

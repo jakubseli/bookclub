@@ -1,10 +1,10 @@
-import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import ClubForm from '../components/ClubForm.jsx'
 import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
+import { useSubmit } from '../hooks/useSubmit.js'
 
 function RecentReviews({ bookId }) {
   const { data } = useApi(`/books/${bookId}/reviews?size=2&sort=id,desc`)
@@ -68,7 +68,7 @@ export default function ClubPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { data: club, error, setData } = useApi(`/clubs/${id}`)
-  const [actionError, setActionError] = useState(null)
+  const { submit, error: actionError } = useSubmit()
 
   if (error) {
     return (
@@ -86,27 +86,21 @@ export default function ClubPage() {
   const isMember = club.members.some((member) => member.id === user.id)
   const membersPath = `/clubs/${id}/members/${user.id}`
 
-  async function run(action) {
-    setActionError(null)
-    try {
-      await action()
-    } catch (e) {
-      setActionError(e.message)
-    }
-  }
-
-  const join = () => run(async () => setData(await api(membersPath, { method: 'POST' })))
-  const leave = () => run(async () => {
+  const join = () => submit(async () => setData(await api(membersPath, { method: 'POST' })))
+  const leave = () => submit(async () => {
     await api(membersPath, { method: 'DELETE' })
     setData(await api(`/clubs/${id}`))
   })
   const save = async (request) => setData(await api(`/clubs/${id}`, { method: 'PUT', body: request }))
-  const remove = () => run(async () => {
+
+  function remove() {
     if (window.confirm(`Delete "${club.name}" for everyone? This can't be undone.`)) {
-      await api(`/clubs/${id}`, { method: 'DELETE' })
-      navigate('/clubs')
+      submit(async () => {
+        await api(`/clubs/${id}`, { method: 'DELETE' })
+        navigate('/clubs')
+      })
     }
-  })
+  }
 
   return (
     <div className="stack">

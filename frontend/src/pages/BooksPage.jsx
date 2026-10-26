@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import Pagination from '../components/Pagination.jsx'
+import SortSelect from '../components/SortSelect.jsx'
 import { plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 
@@ -17,8 +18,8 @@ export default function BooksPage() {
   const [sort, setSort] = useState(SORTS[0].value)
   const { data: result, error } = useApi(`/books?page=${page}&size=${PAGE_SIZE}&sort=${sort}`)
 
-  function changeSort(event) {
-    setSort(event.target.value)
+  function changeSort(value) {
+    setSort(value)
     setPage(0)
   }
 
@@ -33,12 +34,7 @@ export default function BooksPage() {
         <>
           <div className="toolbar">
             <p className="muted">{plural(result.page.totalElements, 'book')}</p>
-            <div className="inline-field">
-              <label htmlFor="book-sort">Sort by</label>
-              <select id="book-sort" value={sort} onChange={changeSort}>
-                {SORTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            </div>
+            <SortSelect id="book-sort" options={SORTS} value={sort} onChange={changeSort} />
           </div>
           <div className="table-box">
             <table className="table">

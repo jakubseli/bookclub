@@ -1,41 +1,23 @@
 import { useState } from 'react'
-import { describeError } from '../api.js'
+import { useSubmit } from '../hooks/useSubmit.js'
 
 const RATINGS = [1, 2, 3, 4, 5]
 
 export default function ReviewForm({ review, onSave, onDelete }) {
   const [rating, setRating] = useState(review?.rating ?? null)
   const [comment, setComment] = useState(review?.comment ?? '')
-  const [fieldErrors, setFieldErrors] = useState({})
-  const [error, setError] = useState(null)
   const [saved, setSaved] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-
-  async function run(action) {
-    setSubmitting(true)
-    setError(null)
-    setFieldErrors({})
-    setSaved(false)
-    try {
-      await action()
-      return true
-    } catch (e) {
-      setError(describeError(e, 'You have already reviewed this book.'))
-      setFieldErrors(e.fieldErrors)
-      return false
-    } finally {
-      setSubmitting(false)
-    }
-  }
+  const { submit, submitting, error, fieldErrors } = useSubmit('You have already reviewed this book.')
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setSaved(await run(() => onSave({ rating, comment: comment || null })))
+    setSaved(await submit(() => onSave({ rating, comment: comment || null })))
   }
 
   function handleDelete() {
     if (window.confirm('Delete your review of this book?')) {
-      run(onDelete)
+      setSaved(false)
+      submit(onDelete)
     }
   }
 

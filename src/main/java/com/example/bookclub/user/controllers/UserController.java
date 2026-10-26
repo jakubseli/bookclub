@@ -2,6 +2,7 @@ package com.example.bookclub.user.controllers;
 
 import com.example.bookclub.user.dtos.UserRequest;
 import com.example.bookclub.user.dtos.UserResponse;
+import com.example.bookclub.user.dtos.UserSummaryResponse;
 import com.example.bookclub.user.services.UserService;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
@@ -30,10 +31,11 @@ public class UserController {
     }
 
     @GetMapping
-    public PagedModel<UserResponse> findAll(@ParameterObject Pageable pageable) {
+    public PagedModel<UserSummaryResponse> findAll(@ParameterObject Pageable pageable) {
         return new PagedModel<>(userService.findAll(pageable));
     }
 
+    @PreAuthorize("#id.toString() == authentication.name")
     @GetMapping("/{id}")
     public UserResponse findById(@PathVariable Long id) {
         return userService.findById(id);

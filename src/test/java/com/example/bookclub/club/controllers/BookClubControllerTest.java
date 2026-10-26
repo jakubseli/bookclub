@@ -1,11 +1,12 @@
 package com.example.bookclub.club.controllers;
 
 import com.example.bookclub.club.dtos.BookClubResponse;
-import com.example.bookclub.club.dtos.MemberResponse;
 import com.example.bookclub.club.models.BookClub;
 import com.example.bookclub.club.services.BookClubService;
+import com.example.bookclub.common.ConflictException;
 import com.example.bookclub.common.NotFoundException;
 import com.example.bookclub.config.SecurityConfig;
+import com.example.bookclub.user.dtos.UserSummaryResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -21,8 +22,10 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -59,7 +62,7 @@ class BookClubControllerTest {
 
     @Test
     void addingMemberReturnsClubWithMember() throws Exception {
-        MemberResponse john = new MemberResponse(7L, "john");
+        UserSummaryResponse john = new UserSummaryResponse(7L, "john");
         BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, null, john, List.of(john));
         when(bookClubService.addMember(1L, 7L)).thenReturn(club);
 
@@ -71,7 +74,7 @@ class BookClubControllerTest {
 
     @Test
     void creatorBecomesOwner() throws Exception {
-        MemberResponse john = new MemberResponse(7L, "john");
+        UserSummaryResponse john = new UserSummaryResponse(7L, "john");
         BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, null, john, List.of(john));
         when(bookClubService.create(any(BookClub.class), isNull(), eq(7L))).thenReturn(club);
 
@@ -91,13 +94,23 @@ class BookClubControllerTest {
         mockMvc.perform(put("/api/v1/clubs/1").with(jwt().jwt(token -> token.subject("8")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\": \"Renamed\"}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.detail").value("Only the owner can change book club 1"));
     }
 
     @Test
     void addingSomeoneElseReturns403() throws Exception {
         mockMvc.perform(post("/api/v1/clubs/1/members/7").with(jwt().jwt(token -> token.subject("8"))))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerLeavingOwnClubReturns409() throws Exception {
+        doThrow(new ConflictException("The owner can't leave their own club")).when(bookClubService).removeMember(1L, 7L);
+
+        mockMvc.perform(delete("/api/v1/clubs/1/members/7").with(jwt().jwt(token -> token.subject("7"))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("The owner can't leave their own club"));
     }
 
     @Test

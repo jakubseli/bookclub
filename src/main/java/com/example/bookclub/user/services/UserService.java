@@ -2,6 +2,7 @@ package com.example.bookclub.user.services;
 
 import com.example.bookclub.common.NotFoundException;
 import com.example.bookclub.user.dtos.UserResponse;
+import com.example.bookclub.user.dtos.UserSummaryResponse;
 import com.example.bookclub.user.models.User;
 import com.example.bookclub.user.repositories.UserRepository;
 import org.springframework.data.domain.Page;
@@ -22,8 +23,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserResponse> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable).map(UserResponse::from);
+    public Page<UserSummaryResponse> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).map(UserSummaryResponse::from);
     }
 
     @Transactional(readOnly = true)
