@@ -1,0 +1,41 @@
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api/v1'
+const TOKEN_KEY = 'bookclub.token'
+
+export const tokenStore = {
+  get: () => localStorage.getItem(TOKEN_KEY),
+  set: (token) => localStorage.setItem(TOKEN_KEY, token),
+  clear: () => localStorage.removeItem(TOKEN_KEY),
+}
+
+export class ApiError extends Error {
+  constructor(status, body) {
+    super(body?.detail ?? `Request failed with status ${status}`)
+    this.status = status
+    this.fieldErrors = body?.errors ?? {}
+  }
+}
+
+export async function api(path, { method = 'GET', body } = {}) {
+  const token = tokenStore.get()
+  const response = await fetch(API_URL + path, {
+    method,
+    headers: {
+      ...(body && { 'Content-Type': 'application/json' }),
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: body && JSON.stringify(body),
+  }).catch(() => {
+    throw new ApiError(0, { detail: "Can't reach the server. Is the backend running?" })
+  })
+
+  if (response.status === 401 && token) {
+    tokenStore.clear()
+    window.location.assign('/login')
+  }
+
+  const data = response.status === 204 ? null : await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new ApiError(response.status, data)
+  }
+  return data
+}
