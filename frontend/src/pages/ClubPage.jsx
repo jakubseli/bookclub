@@ -6,7 +6,7 @@ import ClubImage from '../components/ClubImage.jsx'
 import StarRating from '../components/StarRating.jsx'
 import TagList from '../components/TagList.jsx'
 import UserLink from '../components/UserLink.jsx'
-import { plural } from '../format.js'
+import { formatDay, plural } from '../format.js'
 import { useApi } from '../hooks/useApi.js'
 import { useClubTags } from '../hooks/useClubTags.js'
 import { useSubmit } from '../hooks/useSubmit.js'
@@ -31,7 +31,8 @@ function RecentReviews({ bookId }) {
   )
 }
 
-function CurrentBook({ book, settingsPath }) {
+function CurrentBook({ club, readingPath }) {
+  const book = club.currentBook
   return (
     <section className="card stack-sm" aria-labelledby="current-book-heading">
       <h2 id="current-book-heading" className="section-label">Currently reading</h2>
@@ -43,13 +44,15 @@ function CurrentBook({ book, settingsPath }) {
           <div className="stack-sm">
             <p className="book-title">{book.title}</p>
             <p className="muted">{book.author}{book.publishedYear && ` · ${book.publishedYear}`}</p>
+            {club.readingFrom && <p>{formatDay(club.readingFrom)} – {formatDay(club.readingUntil)}</p>}
             <Link to={`/books/${book.id}`} className="back-link">See all reviews of this book →</Link>
+            {readingPath && <Link to={readingPath} className="button align-start">Change book</Link>}
           </div>
         </div>
       ) : (
         <>
           <p className="muted">No book picked yet.</p>
-          {settingsPath && <Link to={settingsPath} className="button button-primary align-start">Pick the first book</Link>}
+          {readingPath && <Link to={readingPath} className="button button-primary align-start">Pick the first book</Link>}
         </>
       )}
     </section>
@@ -126,14 +129,14 @@ export default function ClubPage() {
       {actionError && <p className="alert" role="alert">{actionError}</p>}
       <div className="two-column">
         <div className="column-main stack">
-          <CurrentBook book={club.currentBook} settingsPath={isOwner ? settingsPath : null} />
+          <CurrentBook club={club} readingPath={isOwner ? `/clubs/${id}/reading` : null} />
           {club.currentBook && <RecentReviews bookId={club.currentBook.id} />}
         </div>
         <div className="column-side stack">
           {isOwner && (
             <section className="card stack-sm" aria-labelledby="settings-heading">
               <h2 id="settings-heading">Club settings</h2>
-              <p className="muted">Change the name, tags, image or current book, or delete the club.</p>
+              <p className="muted">Change the name, description, tags or image, or delete the club.</p>
               <Link to={settingsPath} className="button align-start">Open settings</Link>
             </section>
           )}

@@ -62,7 +62,7 @@ export default function ClubSettingsPage() {
       </div>
       {notice && <p className="alert" role="alert">{notice}</p>}
       <section className="card" aria-label="Club details">
-        <ClubForm key={club.id} idPrefix="club-settings" club={club} withBook submitLabel="Save changes" onSubmit={save} />
+        <ClubForm key={club.id} idPrefix="club-settings" club={club} submitLabel="Save changes" onSubmit={save} />
       </section>
       <section className="card danger-zone toolbar" aria-labelledby="delete-club-heading">
         <div className="stack-sm">

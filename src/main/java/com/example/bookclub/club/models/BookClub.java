@@ -19,6 +19,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,6 +45,10 @@ public class BookClub {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_book_id")
     private Book currentBook;
+
+    private LocalDate readingFrom;
+
+    private LocalDate readingUntil;
 
     @ManyToMany
     @JoinTable(
@@ -95,8 +100,18 @@ public class BookClub {
         return currentBook;
     }
 
-    public void setCurrentBook(Book currentBook) {
-        this.currentBook = currentBook;
+    public LocalDate getReadingFrom() {
+        return readingFrom;
+    }
+
+    public LocalDate getReadingUntil() {
+        return readingUntil;
+    }
+
+    public void startReading(Book book, LocalDate from, LocalDate until) {
+        currentBook = book;
+        readingFrom = from;
+        readingUntil = until;
     }
 
     public boolean isOwnedBy(Long userId) {

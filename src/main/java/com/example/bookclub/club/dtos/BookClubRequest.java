@@ -12,7 +12,6 @@ import java.util.Set;
 public record BookClubRequest(
         @NotBlank @Size(max = 255) String name,
         @Size(max = 255) String description,
-        Long currentBookId,
         @Size(max = 5) Set<ClubTag> tags,
         @Min(1) @Max(BookClub.PRESET_IMAGE_COUNT) Integer imagePreset
 ) {

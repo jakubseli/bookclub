@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useClubTags } from '../hooks/useClubTags.js'
 import { useSubmit } from '../hooks/useSubmit.js'
-import BookSelect from './BookSelect.jsx'
 import FormField from './FormField.jsx'
 import ImagePicker from './ImagePicker.jsx'
 import TagPicker from './TagPicker.jsx'
@@ -11,23 +10,21 @@ function toForm(club) {
     name: club?.name ?? '',
     description: club?.description ?? '',
     tags: club?.tags ?? [],
-    currentBookId: club?.currentBook?.id ?? '',
     imagePreset: club ? club.imagePreset : 1,
     imageFile: null,
   }
 }
 
-function toClubRequest(form, withBook) {
+function toClubRequest(form) {
   return {
     name: form.name,
     description: form.description || null,
     tags: form.tags,
     imagePreset: form.imageFile ? null : form.imagePreset,
-    ...(withBook && { currentBookId: form.currentBookId === '' ? null : Number(form.currentBookId) }),
   }
 }
 
-export default function ClubForm({ idPrefix, club, withBook = false, submitLabel, onSubmit }) {
+export default function ClubForm({ idPrefix, club, submitLabel, onSubmit }) {
   const [form, setForm] = useState(() => toForm(club))
   const [saved, setSaved] = useState(false)
   const { options: tagOptions } = useClubTags()
@@ -41,7 +38,7 @@ export default function ClubForm({ idPrefix, club, withBook = false, submitLabel
   async function handleSubmit(event) {
     event.preventDefault()
     const succeeded = await submit(async () => {
-      const savedClub = await onSubmit(toClubRequest(form, withBook), form.imageFile)
+      const savedClub = await onSubmit(toClubRequest(form), form.imageFile)
       if (savedClub) {
         setForm(toForm(savedClub))
       }
@@ -63,7 +60,6 @@ export default function ClubForm({ idPrefix, club, withBook = false, submitLabel
         file={form.imageFile}
         onChange={({ preset, file }) => update({ imagePreset: preset, imageFile: file })}
       />
-      {withBook && <BookSelect id={`${idPrefix}-book`} value={form.currentBookId} onChange={(e) => update({ currentBookId: e.target.value })} />}
       <div className="actions">
         <button type="submit" className="button button-primary" disabled={submitting}>{submitting ? 'Saving…' : submitLabel}</button>
         {saved && <span className="muted" role="status">Saved</span>}

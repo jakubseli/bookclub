@@ -176,7 +176,7 @@ button.nav-link {
   resize: vertical;
 }
 
-.field input[aria-invalid='true'], .field textarea[aria-invalid='true'] {
+.field input[aria-invalid='true'], .field textarea[aria-invalid='true'], .field select[aria-invalid='true'] {
   border: 2px solid var(--danger);
 }
 

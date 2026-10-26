@@ -1,6 +1,5 @@
 package com.example.bookclub.club.services;
 
-import com.example.bookclub.book.models.Book;
 import com.example.bookclub.book.services.BookService;
 import com.example.bookclub.club.dtos.BookClubResponse;
 import com.example.bookclub.club.dtos.ClubImageData;
@@ -22,6 +21,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,20 +55,18 @@ public class BookClubService {
     }
 
     @Transactional
-    public BookClubResponse create(BookClub club, Long currentBookId, Long ownerId) {
+    public BookClubResponse create(BookClub club, Long ownerId) {
         User owner = userService.findUser(ownerId);
-        club.setCurrentBook(findCurrentBook(currentBookId));
         club.setOwner(owner);
         club.addMember(owner);
         return BookClubResponse.from(bookClubRepository.save(club));
     }
 
     @Transactional
-    public BookClubResponse update(Long id, BookClub updated, Long currentBookId, Long userId) {
+    public BookClubResponse update(Long id, BookClub updated, Long userId) {
         BookClub existing = findOwnedClub(id, userId);
         existing.setName(updated.getName());
         existing.setDescription(updated.getDescription());
-        existing.setCurrentBook(findCurrentBook(currentBookId));
         existing.setTags(updated.getTags());
         if (updated.getImagePreset() != null) {
             if (existing.hasUploadedImage()) {
@@ -77,6 +75,13 @@ public class BookClubService {
             existing.choosePreset(updated.getImagePreset());
         }
         return BookClubResponse.from(existing);
+    }
+
+    @Transactional
+    public BookClubResponse startReading(Long id, Long bookId, LocalDate from, LocalDate until, Long userId) {
+        BookClub club = findOwnedClub(id, userId);
+        club.startReading(bookService.findBook(bookId), from, until);
+        return BookClubResponse.from(club);
     }
 
     @Transactional
@@ -126,10 +131,6 @@ public class BookClubService {
     private BookClub findClub(Long id) {
         return bookClubRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Book club " + id + " not found"));
-    }
-
-    private Book findCurrentBook(Long bookId) {
-        return bookId == null ? null : bookService.findBook(bookId);
     }
 
     private BookClub findOwnedClub(Long id, Long userId) {

@@ -10,6 +10,7 @@ import ClubsPage from './pages/ClubsPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import NewClubPage from './pages/NewClubPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
+import ReadingPage from './pages/ReadingPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/clubs/new" element={<NewClubPage />} />
           <Route path="/clubs/:id" element={<ClubPage />} />
           <Route path="/clubs/:id/settings" element={<ClubSettingsPage />} />
+          <Route path="/clubs/:id/reading" element={<ReadingPage />} />
           <Route path="/books" element={<BooksPage />} />
           <Route path="/books/:id" element={<BookPage />} />
           <Route path="/users/:id" element={<ProfilePage />} />

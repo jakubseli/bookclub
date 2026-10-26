@@ -4,6 +4,7 @@ import com.example.bookclub.club.dtos.BookClubRequest;
 import com.example.bookclub.club.dtos.BookClubResponse;
 import com.example.bookclub.club.dtos.ClubImageData;
 import com.example.bookclub.club.dtos.ClubTagResponse;
+import com.example.bookclub.club.dtos.ReadingRequest;
 import com.example.bookclub.club.services.BookClubService;
 import com.example.bookclub.common.CurrentUserId;
 import jakarta.validation.Valid;
@@ -60,13 +61,19 @@ public class BookClubController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BookClubResponse create(@Valid @RequestBody BookClubRequest request, @CurrentUserId Long userId) {
-        return bookClubService.create(request.toEntity(), request.currentBookId(), userId);
+        return bookClubService.create(request.toEntity(), userId);
     }
 
     @PutMapping("/{id}")
     public BookClubResponse update(@PathVariable Long id, @Valid @RequestBody BookClubRequest request,
                                    @CurrentUserId Long userId) {
-        return bookClubService.update(id, request.toEntity(), request.currentBookId(), userId);
+        return bookClubService.update(id, request.toEntity(), userId);
+    }
+
+    @PutMapping("/{id}/reading")
+    public BookClubResponse startReading(@PathVariable Long id, @Valid @RequestBody ReadingRequest request,
+                                         @CurrentUserId Long userId) {
+        return bookClubService.startReading(id, request.bookId(), request.from(), request.until(), userId);
     }
 
     @DeleteMapping("/{id}")
