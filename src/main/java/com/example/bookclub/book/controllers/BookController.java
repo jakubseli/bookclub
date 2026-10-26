@@ -1,5 +1,6 @@
 package com.example.bookclub.book.controllers;
 
+import com.example.bookclub.book.dtos.BookDetailResponse;
 import com.example.bookclub.book.dtos.BookResponse;
 import com.example.bookclub.book.services.BookService;
 import org.springdoc.core.annotations.ParameterObject;
@@ -26,7 +27,7 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public BookResponse findById(@PathVariable Long id) {
+    public BookDetailResponse findById(@PathVariable Long id) {
         return bookService.findById(id);
     }
 }

@@ -12,8 +12,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "review", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "book_id"}))
@@ -33,10 +36,14 @@ public class Review {
     private Book book;
 
     @Column(nullable = false)
-    private int rating;
+    private double rating;
 
     @Column(length = 1000)
     private String comment;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
 
     public Long getId() {
         return id;
@@ -58,11 +65,11 @@ public class Review {
         this.book = book;
     }
 
-    public int getRating() {
+    public double getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(double rating) {
         this.rating = rating;
     }
 
@@ -72,6 +79,10 @@ public class Review {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
     public boolean isWrittenBy(Long userId) {

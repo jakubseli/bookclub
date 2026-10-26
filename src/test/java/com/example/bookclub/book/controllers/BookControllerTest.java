@@ -37,12 +37,13 @@ class BookControllerTest {
 
     @Test
     void listIsPaginated() throws Exception {
-        BookResponse dune = new BookResponse(1L, "Dune", "Frank Herbert", 1965);
+        BookResponse dune = new BookResponse(1L, "Dune", "Frank Herbert", 1965, 11481354L);
         when(bookService.findAll(PageRequest.of(0, 1))).thenReturn(new PageImpl<>(List.of(dune), PageRequest.of(0, 1), 12));
 
         mockMvc.perform(get("/api/v1/books").param("page", "0").param("size", "1").with(jwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].title").value("Dune"))
+                .andExpect(jsonPath("$.content[0].coverId").value(11481354L))
                 .andExpect(jsonPath("$.page.totalPages").value(12));
     }
 

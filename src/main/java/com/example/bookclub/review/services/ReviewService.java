@@ -2,6 +2,7 @@ package com.example.bookclub.review.services;
 
 import com.example.bookclub.book.services.BookService;
 import com.example.bookclub.common.NotFoundException;
+import com.example.bookclub.review.dtos.RatingSummaryResponse;
 import com.example.bookclub.review.dtos.ReviewResponse;
 import com.example.bookclub.review.models.Review;
 import com.example.bookclub.review.repositories.ReviewRepository;
@@ -29,6 +30,12 @@ public class ReviewService {
     public Page<ReviewResponse> findByBook(Long bookId, Pageable pageable) {
         bookService.findBook(bookId);
         return reviewRepository.findByBookId(bookId, pageable).map(ReviewResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public RatingSummaryResponse findRatings(Long bookId) {
+        bookService.findBook(bookId);
+        return RatingSummaryResponse.from(reviewRepository.countRatingsByBookId(bookId));
     }
 
     @Transactional(readOnly = true)

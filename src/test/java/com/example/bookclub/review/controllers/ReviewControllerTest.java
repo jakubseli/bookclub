@@ -2,6 +2,8 @@ package com.example.bookclub.review.controllers;
 
 import com.example.bookclub.common.NotFoundException;
 import com.example.bookclub.config.SecurityConfig;
+import com.example.bookclub.review.dtos.RatingCount;
+import com.example.bookclub.review.dtos.RatingSummaryResponse;
 import com.example.bookclub.review.dtos.ReviewResponse;
 import com.example.bookclub.review.models.Review;
 import com.example.bookclub.review.services.ReviewService;
@@ -15,6 +17,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.Instant;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,6 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = "jwt.secret=test-secret-that-is-at-least-32-bytes-long")
 class ReviewControllerTest {
 
+    private static final Instant CREATED_AT = Instant.parse("2026-10-26T10:00:00Z");
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -40,14 +47,15 @@ class ReviewControllerTest {
     @Test
     void createReturns201WithAuthor() throws Exception {
         when(reviewService.create(eq(1L), any(Review.class), eq(7L)))
-                .thenReturn(new ReviewResponse(3L, 1L, 7L, "john", 5, "Great"));
+                .thenReturn(new ReviewResponse(3L, 1L, 7L, "john", 4.5, "Great", CREATED_AT));
 
         mockMvc.perform(post("/api/v1/books/1/reviews").with(jwt().jwt(token -> token.subject("7")))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"rating\": 5, \"comment\": \"Great\"}"))
+                        .content("{\"rating\": 4.5, \"comment\": \"Great\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.userId").value(7))
-                .andExpect(jsonPath("$.rating").value(5));
+                .andExpect(jsonPath("$.rating").value(4.5))
+                .andExpect(jsonPath("$.createdAt").value("2026-10-26T10:00:00Z"));
     }
 
     @Test
@@ -60,6 +68,27 @@ class ReviewControllerTest {
     }
 
     @Test
+    void ratingBetweenHalfStepsReturns400() throws Exception {
+        mockMvc.perform(post("/api/v1/books/1/reviews").with(jwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"rating\": 4.3}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.rating").value("must be in steps of 0.5"));
+    }
+
+    @Test
+    void ratingSummaryIsReturned() throws Exception {
+        when(reviewService.findRatings(1L))
+                .thenReturn(RatingSummaryResponse.from(List.of(new RatingCount(4.5, 2), new RatingCount(3.0, 1))));
+
+        mockMvc.perform(get("/api/v1/books/1/ratings").with(jwt()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.average").value(4.0))
+                .andExpect(jsonPath("$.count").value(3))
+                .andExpect(jsonPath("$.distribution.length()").value(10));
+    }
+
+    @Test
     void reviewsOfUnknownBookReturn404() throws Exception {
         when(reviewService.findByBook(eq(99L), any(Pageable.class))).thenThrow(new NotFoundException("Book 99 not found"));
 
@@ -69,7 +98,7 @@ class ReviewControllerTest {
 
     @Test
     void ownReviewIsFoundByToken() throws Exception {
-        when(reviewService.findOwn(1L, 7L)).thenReturn(new ReviewResponse(3L, 1L, 7L, "john", 4, null));
+        when(reviewService.findOwn(1L, 7L)).thenReturn(new ReviewResponse(3L, 1L, 7L, "john", 4.0, null, CREATED_AT));
 
         mockMvc.perform(get("/api/v1/books/1/reviews/mine").with(jwt().jwt(token -> token.subject("7"))))
                 .andExpect(status().isOk())

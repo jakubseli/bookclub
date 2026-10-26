@@ -1,6 +1,7 @@
 package com.example.bookclub.review.controllers;
 
 import com.example.bookclub.common.CurrentUserId;
+import com.example.bookclub.review.dtos.RatingSummaryResponse;
 import com.example.bookclub.review.dtos.ReviewRequest;
 import com.example.bookclub.review.dtos.ReviewResponse;
 import com.example.bookclub.review.services.ReviewService;
@@ -32,6 +33,11 @@ public class ReviewController {
     @GetMapping("/books/{bookId}/reviews")
     public PagedModel<ReviewResponse> findByBook(@PathVariable Long bookId, @ParameterObject Pageable pageable) {
         return new PagedModel<>(reviewService.findByBook(bookId, pageable));
+    }
+
+    @GetMapping("/books/{bookId}/ratings")
+    public RatingSummaryResponse findRatings(@PathVariable Long bookId) {
+        return reviewService.findRatings(bookId);
     }
 
     @GetMapping("/books/{bookId}/reviews/mine")

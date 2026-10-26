@@ -1,5 +1,6 @@
 package com.example.bookclub.book.services;
 
+import com.example.bookclub.book.dtos.BookDetailResponse;
 import com.example.bookclub.book.dtos.BookResponse;
 import com.example.bookclub.book.models.Book;
 import com.example.bookclub.book.repositories.BookRepository;
@@ -24,8 +25,8 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public BookResponse findById(Long id) {
-        return BookResponse.from(findBook(id));
+    public BookDetailResponse findById(Long id) {
+        return BookDetailResponse.from(findBook(id));
     }
 
     public Book findBook(Long id) {
