@@ -1,6 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api/v1'
 const TOKEN_KEY = 'bookclub.token'
 
+export const API_ORIGIN = new URL(API_URL).origin
+
 export const tokenStore = {
   get: () => localStorage.getItem(TOKEN_KEY),
   set: (token) => localStorage.setItem(TOKEN_KEY, token),
@@ -24,13 +26,14 @@ export function describeError(e, conflictMessage) {
 
 export async function api(path, { method = 'GET', body } = {}) {
   const token = tokenStore.get()
+  const isForm = body instanceof FormData
   const response = await fetch(API_URL + path, {
     method,
     headers: {
-      ...(body && { 'Content-Type': 'application/json' }),
+      ...(body && !isForm && { 'Content-Type': 'application/json' }),
       ...(token && { Authorization: `Bearer ${token}` }),
     },
-    body: body && JSON.stringify(body),
+    body: isForm ? body : body && JSON.stringify(body),
   }).catch(() => {
     throw new ApiError(0, { detail: "Can't reach the server. Is the backend running?" })
   })

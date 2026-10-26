@@ -1,17 +1,23 @@
 package com.example.bookclub.club.controllers;
 
 import com.example.bookclub.club.dtos.BookClubResponse;
+import com.example.bookclub.club.dtos.ClubImageData;
+import com.example.bookclub.club.dtos.ClubTagResponse;
 import com.example.bookclub.club.models.BookClub;
+import com.example.bookclub.club.models.ClubTag;
 import com.example.bookclub.club.services.BookClubService;
 import com.example.bookclub.common.ConflictException;
 import com.example.bookclub.common.NotFoundException;
+import com.example.bookclub.common.UnsupportedImageException;
 import com.example.bookclub.config.SecurityConfig;
 import com.example.bookclub.user.dtos.UserSummaryResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -27,8 +33,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -63,7 +72,7 @@ class BookClubControllerTest {
     @Test
     void addingMemberReturnsClubWithMember() throws Exception {
         UserSummaryResponse john = new UserSummaryResponse(7L, "john");
-        BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, null, john, List.of(john));
+        BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, List.of(), null, null, null, john, List.of(john));
         when(bookClubService.addMember(1L, 7L)).thenReturn(club);
 
         mockMvc.perform(post("/api/v1/clubs/1/members/7").with(jwt().jwt(token -> token.subject("7"))))
@@ -75,7 +84,7 @@ class BookClubControllerTest {
     @Test
     void creatorBecomesOwner() throws Exception {
         UserSummaryResponse john = new UserSummaryResponse(7L, "john");
-        BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, null, john, List.of(john));
+        BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, List.of(), null, null, null, john, List.of(john));
         when(bookClubService.create(any(BookClub.class), isNull(), eq(7L))).thenReturn(club);
 
         mockMvc.perform(post("/api/v1/clubs").with(jwt().jwt(token -> token.subject("7")))
@@ -111,6 +120,80 @@ class BookClubControllerTest {
         mockMvc.perform(delete("/api/v1/clubs/1/members/7").with(jwt().jwt(token -> token.subject("7"))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("The owner can't leave their own club"));
+    }
+
+    @Test
+    void tagsAreListedWithLabels() throws Exception {
+        when(bookClubService.findTags()).thenReturn(List.of(ClubTagResponse.from(ClubTag.SCI_FI)));
+
+        mockMvc.perform(get("/api/v1/clubs/tags").with(jwt()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].value").value("SCI_FI"))
+                .andExpect(jsonPath("$[0].label").value("Sci-fi"));
+    }
+
+    @Test
+    void moreThanFiveTagsReturns400() throws Exception {
+        mockMvc.perform(post("/api/v1/clubs").with(jwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"Sci-fi\", \"tags\": [\"SCI_FI\", \"FANTASY\", \"HORROR\", \"ONLINE\", \"WEEKLY\", \"CLASSICS\"]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.tags").exists());
+    }
+
+    @Test
+    void unknownTagReturns400() throws Exception {
+        mockMvc.perform(post("/api/v1/clubs").with(jwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"Sci-fi\", \"tags\": [\"KNITTING\"]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void presetOutOfRangeReturns400() throws Exception {
+        mockMvc.perform(post("/api/v1/clubs").with(jwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"Sci-fi\", \"imagePreset\": 9}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.imagePreset").exists());
+    }
+
+    @Test
+    void uploadingImageReturnsClubWithImageUrl() throws Exception {
+        UserSummaryResponse john = new UserSummaryResponse(7L, "john");
+        BookClubResponse club = new BookClubResponse(1L, "Sci-fi", null, List.of(), null,
+                "/api/v1/clubs/1/image?v=1", null, john, List.of(john));
+        when(bookClubService.uploadImage(eq(1L), any(byte[].class), eq(7L))).thenReturn(club);
+
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/v1/clubs/1/image")
+                        .file(new MockMultipartFile("file", "cover.png", "image/png", new byte[]{1, 2, 3}))
+                        .with(jwt().jwt(token -> token.subject("7"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageUrl").value("/api/v1/clubs/1/image?v=1"));
+    }
+
+    @Test
+    void unsupportedImageReturns415() throws Exception {
+        when(bookClubService.uploadImage(eq(1L), any(byte[].class), eq(7L)))
+                .thenThrow(new UnsupportedImageException("The image must be a JPEG, PNG or WebP file"));
+
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/v1/clubs/1/image")
+                        .file(new MockMultipartFile("file", "notes.txt", "text/plain", "hello".getBytes()))
+                        .with(jwt().jwt(token -> token.subject("7"))))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.detail").value("The image must be a JPEG, PNG or WebP file"));
+    }
+
+    @Test
+    void clubImageIsPublicAndCached() throws Exception {
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G'};
+        when(bookClubService.findImage(1L)).thenReturn(new ClubImageData("image/png", png));
+
+        mockMvc.perform(get("/api/v1/clubs/1/image"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/png"))
+                .andExpect(header().string("Cache-Control", "max-age=31536000, public"))
+                .andExpect(content().bytes(png));
     }
 
     @Test

@@ -3,10 +3,17 @@ package com.example.bookclub.club.services;
 import com.example.bookclub.book.models.Book;
 import com.example.bookclub.book.services.BookService;
 import com.example.bookclub.club.dtos.BookClubResponse;
+import com.example.bookclub.club.dtos.ClubImageData;
+import com.example.bookclub.club.dtos.ClubTagResponse;
 import com.example.bookclub.club.models.BookClub;
+import com.example.bookclub.club.models.ClubImage;
+import com.example.bookclub.club.models.ClubTag;
 import com.example.bookclub.club.repositories.BookClubRepository;
+import com.example.bookclub.club.repositories.ClubImageRepository;
 import com.example.bookclub.common.ConflictException;
+import com.example.bookclub.common.ImageType;
 import com.example.bookclub.common.NotFoundException;
+import com.example.bookclub.common.UnsupportedImageException;
 import com.example.bookclub.user.models.User;
 import com.example.bookclub.user.services.UserService;
 import org.springframework.data.domain.Page;
@@ -15,15 +22,21 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Service
 public class BookClubService {
 
     private final BookClubRepository bookClubRepository;
+    private final ClubImageRepository clubImageRepository;
     private final UserService userService;
     private final BookService bookService;
 
-    public BookClubService(BookClubRepository bookClubRepository, UserService userService, BookService bookService) {
+    public BookClubService(BookClubRepository bookClubRepository, ClubImageRepository clubImageRepository,
+                           UserService userService, BookService bookService) {
         this.bookClubRepository = bookClubRepository;
+        this.clubImageRepository = clubImageRepository;
         this.userService = userService;
         this.bookService = bookService;
     }
@@ -53,6 +66,13 @@ public class BookClubService {
         existing.setName(updated.getName());
         existing.setDescription(updated.getDescription());
         existing.setCurrentBook(findCurrentBook(currentBookId));
+        existing.setTags(updated.getTags());
+        if (updated.getImagePreset() != null) {
+            if (existing.hasUploadedImage()) {
+                clubImageRepository.deleteById(id);
+            }
+            existing.choosePreset(updated.getImagePreset());
+        }
         return BookClubResponse.from(existing);
     }
 
@@ -75,6 +95,29 @@ public class BookClubService {
             throw new ConflictException("The owner can't leave their own club");
         }
         club.removeMember(userService.findUser(userId));
+    }
+
+    public List<ClubTagResponse> findTags() {
+        return Arrays.stream(ClubTag.values()).map(ClubTagResponse::from).toList();
+    }
+
+    @Transactional
+    public BookClubResponse uploadImage(Long id, byte[] bytes, Long userId) {
+        BookClub club = findOwnedClub(id, userId);
+        ImageType type = ImageType.detect(bytes)
+                .orElseThrow(() -> new UnsupportedImageException("The image must be a JPEG, PNG or WebP file"));
+        ClubImage image = clubImageRepository.findById(id).orElseGet(() -> new ClubImage(club));
+        image.replace(type.getContentType(), bytes);
+        clubImageRepository.save(image);
+        club.useUploadedImage();
+        return BookClubResponse.from(club);
+    }
+
+    @Transactional(readOnly = true)
+    public ClubImageData findImage(Long id) {
+        return clubImageRepository.findById(id)
+                .map(ClubImageData::from)
+                .orElseThrow(() -> new NotFoundException("Book club " + id + " has no uploaded image"));
     }
 
     private BookClub findClub(Long id) {
