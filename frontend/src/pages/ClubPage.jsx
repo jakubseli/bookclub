@@ -3,6 +3,7 @@ import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import BookCover from '../components/BookCover.jsx'
 import ClubImage from '../components/ClubImage.jsx'
+import PageError from '../components/PageError.jsx'
 import StarRating from '../components/StarRating.jsx'
 import SunPath from '../components/SunPath.jsx'
 import TagList from '../components/TagList.jsx'
@@ -88,12 +89,7 @@ export default function ClubPage() {
   const { submit, error: actionError } = useSubmit()
 
   if (error) {
-    return (
-      <div className="stack">
-        <Link to="/clubs" className="back-link">← All clubs</Link>
-        <p className="alert" role="alert">{error.message}</p>
-      </div>
-    )
+    return <PageError back={<Link to="/clubs" className="back-link">← All clubs</Link>} message={error.message} />
   }
   if (!club) {
     return <p className="muted">Loading club…</p>

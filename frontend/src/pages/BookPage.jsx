@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import BookCover from '../components/BookCover.jsx'
+import PageError from '../components/PageError.jsx'
 import Pagination from '../components/Pagination.jsx'
 import ReviewForm from '../components/ReviewForm.jsx'
 import SortSelect from '../components/SortSelect.jsx'
@@ -106,12 +107,7 @@ export default function BookPage() {
   const loadError = book.error ?? (notReviewedYet ? null : mine.error)
 
   if (loadError) {
-    return (
-      <div className="stack">
-        <BackToBooks />
-        <p className="alert" role="alert">{loadError.message}</p>
-      </div>
-    )
+    return <PageError back={<BackToBooks />} message={loadError.message} />
   }
   if (!book.data || (!mine.data && !notReviewedYet)) {
     return <p className="muted">Loading book…</p>

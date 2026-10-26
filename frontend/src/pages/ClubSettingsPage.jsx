@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { api } from '../api.js'
 import { useAuth } from '../auth/AuthContext.js'
 import ClubForm from '../components/ClubForm.jsx'
+import PageError from '../components/PageError.jsx'
 import { uploadClubImage } from '../clubs.js'
 import { useApi } from '../hooks/useApi.js'
 import { useSubmit } from '../hooks/useSubmit.js'
@@ -16,23 +17,13 @@ export default function ClubSettingsPage() {
   const backLink = <Link to={`/clubs/${id}`} className="back-link">← Back to the club</Link>
 
   if (error) {
-    return (
-      <div className="stack">
-        {backLink}
-        <p className="alert" role="alert">{error.message}</p>
-      </div>
-    )
+    return <PageError back={backLink} message={error.message} />
   }
   if (!club) {
     return <p className="muted">Loading club…</p>
   }
   if (club.owner.id !== user.id) {
-    return (
-      <div className="stack">
-        {backLink}
-        <p className="alert" role="alert">Only the club's owner can change its settings.</p>
-      </div>
-    )
+    return <PageError back={backLink} message="Only the club's owner can change its settings." />
   }
 
   async function save(request, imageFile) {
